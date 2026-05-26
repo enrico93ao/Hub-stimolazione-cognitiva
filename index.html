@@ -67,16 +67,20 @@
 
     <div id="main-hub" class="hidden flex-1 flex flex-col justify-between w-full relative z-10">
         
-        <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 mb-4 shadow-xl">
-                <i class="fa-solid fa-brain text-3xl"></i>
+        <div class="flex justify-between items-center border-b border-slate-900 pb-4 mb-10">
+            <div class="flex items-center gap-3 text-left">
+                <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-lg">
+                    <i class="fa-solid fa-brain text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-100">Hub Clinico v3</h1>
+                    <p class="text-[11px] text-slate-500">Neuro-Potenziamento Multimodale</p>
+                </div>
             </div>
-            <h1 class="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 via-indigo-200 to-slate-400">
-                Hub Clinico di Neuro-Potenziamento v3
-            </h1>
-            <p class="mt-2 text-xs text-slate-400 max-w-2xl mx-auto">
-                Gestione centralizzata dei pazienti, somministrazione dei protocolli e sincronizzazione dei dati di stimolazione in tempo reale nel Cloud.
-            </p>
+            
+            <button onclick="returnToHome()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-house text-indigo-400 text-[11px]"></i> Ritorna alla Home
+            </button>
         </div>
 
         <div class="grid lg:grid-cols-3 gap-6 mb-12">
@@ -237,19 +241,23 @@
 
     </div>
 
-    <div class="mt-20 pt-6 border-t border-slate-900 text-center text-[11px] text-slate-600 tracking-wide uppercase">
-        Sistema Centrale di Riabilitazione Neuropsicologica • Cloud CRM Sincronizzato via Firebase Compat SDK
+    <div class="mt-20 pt-6 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-3 text-[11px] text-slate-600 tracking-wide uppercase">
+        <div>Sistema Centrale di Riabilitazione Neuropsicologica • Firebase CRM</div>
+        <div>
+            <button onclick="returnToHome()" class="hover:text-indigo-400 font-semibold transition-colors">
+                <i class="fa-solid fa-house mr-1"></i> Torna alla Home / Scollegati
+            </button>
+        </div>
     </div>
 
     <script>
-        // Stato Globale dell'Hub
         var selectedPatientId = null;
         var activeSessionId = null;
         var isFreeSession = false;
         var globalPatientsData = {};
         var database = null;
 
-        // Inizializzazione Firebase nativa globale
+        // Configurazione Firebase Invariata
         const firebaseConfig = {
             apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
             authDomain: "neurocenter-stimolazione.firebaseapp.com",
@@ -260,7 +268,6 @@
             measurementId: "G-R7W54NWQ4G"
         };
 
-        // Inizializza l'applicazione Firebase globale
         firebase.initializeApp(firebaseConfig);
         database = firebase.database();
 
@@ -271,7 +278,7 @@
             if (userIn === "Enrico" && passIn === "1234") {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-hub').classList.remove('hidden');
-                document.getElementById('patients-list').innerHTML = 'Caricamento elenco pazienti...';
+                document.getElementById('patients-list').innerHTML = 'Connessione al Cloud in corso...';
                 initDatabaseListeners();
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
@@ -279,14 +286,18 @@
             }
         }
 
+        // Nuovo sistema di ascolto con cattura esplicita dell'errore di permessi
         function initDatabaseListeners() {
             database.ref('pazienti').on('value', function(snapshot) {
                 globalPatientsData = snapshot.val() || {};
                 renderPatientsList(globalPatientsData);
                 if (selectedPatientId) viewPatient(selectedPatientId);
             }, function(error) {
-                console.error("Errore Firebase Database:", error);
-                document.getElementById('patients-list').innerHTML = '<p class="text-rose-400 py-2">Errore di sincronizzazione.</p>';
+                console.error("Firebase Errore:", error);
+                // Se visualizzi questo messaggio, indica al 100% che le Regole di Sicurezza su Firebase bloccano l'accesso!
+                document.getElementById('patients-list').innerHTML = 
+                    '<p class="text-rose-400 font-medium py-1">Errore permessi database.</p>' +
+                    '<p class="text-[10px] text-slate-500 leading-tight">Controlla la scheda "Rules" sulla console Firebase.</p>';
             });
         }
 
@@ -362,7 +373,6 @@
             });
         }
 
-        // Funzione Salva Paziente (Completamente riscritta e stabile al 100%)
         function savePatient() {
             var nome = document.getElementById('p-nome').value.trim();
             var nascita = document.getElementById('p-nascita').value;
@@ -383,11 +393,28 @@
                 document.getElementById('p-note').value = '';
                 toggleAddPatientForm();
             }).catch(function(err) {
-                alert("Errore durante il salvataggio: " + err.message);
+                alert("Errore Firebase in Scrittura: " + err.message + "\nVerifica le regole (Rules) del database.");
             });
         }
 
-        // Avvia Nuova Sessione Paziente Standard
+        // FUNZIONE PER TORNARE ALLA HOME (Scollega e resetta l'Hub)
+        window.returnToHome = function() {
+            stopSession();
+            selectedPatientId = null;
+            
+            // Nasconde l'hub e mostra la schermata iniziale di Login
+            document.getElementById('main-hub').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            
+            // Resetta i campi login
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('login-error').classList.add('hidden');
+            
+            // Disattiva gli ascoltatori attivi per pulizia memoria
+            database.ref('pazienti').off();
+        };
+
         function startSession() {
             if (!selectedPatientId) return;
             var dataCorrente = new Date().toLocaleString('it-IT');
@@ -404,14 +431,11 @@
             });
         }
 
-        // NUOVA FUNZIONE: Avvia Sessione Libera senza tracciamento
         function startFreeSession() {
             isFreeSession = true;
             selectedPatientId = null;
             activeSessionId = "FREE_SESSION_" + Date.now();
             
-            // Aggiorna l'interfaccia simulando un paziente attivo
-            document.getElementById('patient-placeholder').value = '';
             document.getElementById('patient-placeholder').classList.add('hidden');
             document.getElementById('patient-details').classList.remove('hidden');
             
@@ -423,7 +447,6 @@
             document.getElementById('btn-session').classList.add('hidden');
             document.getElementById('btn-stop-session').classList.remove('hidden');
             
-            // Sblocca gli esercizi
             document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
             document.getElementById('exercise-overlay').classList.add('hidden');
             
@@ -431,7 +454,6 @@
             localStorage.setItem('neurocenter_active_session_id', activeSessionId);
         }
 
-        // Termina Sessione (Sia standard che libera)
         function stopSession() {
             document.getElementById('exercises-container').classList.add('opacity-30', 'pointer-events-none');
             document.getElementById('exercise-overlay').classList.remove('hidden');
@@ -461,7 +483,6 @@
             window.open(url, '_blank');
         }
 
-        // Ascolto messaggi dai test (salva sul DB solo se non è una sessione libera)
         window.addEventListener('message', function(event) {
             if (event.data && event.data.type === 'NEUROCENTER_SAVE_DATA') {
                 var pId = localStorage.getItem('neurocenter_active_patient_id');
