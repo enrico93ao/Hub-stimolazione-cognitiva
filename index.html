@@ -16,44 +16,6 @@
         .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.5); border-radius: 3px; }
     </style>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
-            authDomain: "neurocenter-stimolazione.firebaseapp.com",
-            projectId: "neurocenter-stimolazione",
-            storageBucket: "neurocenter-stimolazione.firebasestorage.app",
-            messagingSenderId: "259470306894",
-            appId: "1:259470306894:web:1ba11544fff8e2e4089d1f",
-            measurementId: "G-R7W54NWQ4G"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Esponiamo i metodi al window per l'uso nello script classico sotto
-        window.fbRef = ref;
-        window.fbSet = set;
-        window.fbPush = push;
-        window.fbOnValue = onValue;
-        window.database = db;
-
-        // Una volta agganciato Firebase, avviamo l'ascolto se l'utente è già loggato o lo faremo al login
-        window.initDatabaseListeners = function() {
-            const patientsRef = window.fbRef(window.database, 'pazienti');
-            window.fbOnValue(patientsRef, (snapshot) => {
-                window.globalPatientsData = snapshot.val() || {};
-                window.renderPatientsList(window.globalPatientsData);
-                if (window.selectedPatientId) window.viewPatient(window.selectedPatientId);
-            }, (error) => {
-                console.error("Errore Firebase:", error);
-                document.getElementById('patients-list').innerHTML = '<p class="text-rose-400 py-2">Errore di connessione al database.</p>';
-            });
-        };
-    </script>
 </head>
 <body class="bg-slate-950 bg-gradient-radial min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col justify-between selection:bg-indigo-500/30 selection:text-indigo-200">
 
@@ -271,67 +233,44 @@
         Sistema Centrale di Riabilitazione Neuropsicologica • Cloud CRM Sincronizzato via Firebase SDK
     </div>
 
-    <script>
-        window.selectedPatientId = null;
-        window.activeSessionId = null;
-        window.globalPatientsData = {};
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Login logico
-        window.handleLogin = function(event) {
-            event.preventDefault();
-            const userIn = document.getElementById('username').value;
-            const passIn = document.getElementById('password').value;
-            if (userIn === "Enrico" && passIn === "1234") {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-hub').classList.remove('hidden');
-                document.getElementById('patients-list').innerHTML = 'Connessione al database in corso...';
-                
-                // Richiamiamo l'inizializzazione database configurata nel modulo sopra
-                if (typeof window.initDatabaseListeners === "function") {
-                    window.initDatabaseListeners();
-                }
-            } else {
-                document.getElementById('login-error').classList.remove('hidden');
-                document.getElementById('password').value = '';
-            }
+        // Configurazione Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
+            authDomain: "neurocenter-stimolazione.firebaseapp.com",
+            projectId: "neurocenter-stimolazione",
+            storageBucket: "neurocenter-stimolazione.firebasestorage.app",
+            messagingSenderId: "259470306894",
+            appId: "1:259470306894:web:1ba11544fff8e2e4089d1f",
+            measurementId: "G-R7W54NWQ4G"
         };
 
-        window.toggleAddPatientForm = function() {
-            document.getElementById('add-patient-form').classList.toggle('hidden');
-        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        // Salva Paziente corretto (Usa esplicitamente i riferimenti passati sul window)
-        window.savePatient = function() {
-            const nome = document.getElementById('p-nome').value.trim();
-            const nascita = document.getElementById('p-nascita').value;
-            const note = document.getElementById('p-note').value.trim();
-            
-            if (!nome || !nascita) { 
-                alert("Inserire Cognome, Nome e Data di Nascita."); 
-                return; 
-            }
+        // Stato dell'applicazione locale
+        let selectedPatientId = null;
+        let activeSessionId = null;
+        let globalPatientsData = {};
 
-            if (!window.database || !window.fbRef || !window.fbPush) {
-                alert("Errore: Il database Firebase non è ancora pronto.");
-                return;
-            }
-
-            const patientsRef = window.fbRef(window.database, 'pazienti');
-            window.fbPush(patientsRef, { 
-                nome: nome, 
-                nascita: nascita, 
-                note: note || "Nessuna nota." 
-            }).then(() => {
-                document.getElementById('p-nome').value = '';
-                document.getElementById('p-nascita').value = '';
-                document.getElementById('p-note').value = '';
-                window.toggleAddPatientForm();
-            }).catch((err) => {
-                alert("Errore nel salvataggio: " + err.message);
+        // Funzione per inizializzare gli ascoltatori dei dati dei pazienti
+        function initDatabaseListeners() {
+            const patientsRef = ref(db, 'pazienti');
+            onValue(patientsRef, (snapshot) => {
+                globalPatientsData = snapshot.val() || {};
+                renderPatientsList(globalPatientsData);
+                if (selectedPatientId) viewPatient(selectedPatientId);
+            }, (error) => {
+                console.error("Errore Firebase:", error);
+                document.getElementById('patients-list').innerHTML = '<p class="text-rose-400 py-2">Errore di connessione al database.</p>';
             });
-        };
+        }
 
-        window.renderPatientsList = function(patients) {
+        // Renderizzazione lista pazienti
+        function renderPatientsList(patients) {
             const listContainer = document.getElementById('patients-list');
             listContainer.innerHTML = '';
             const keys = Object.keys(patients);
@@ -344,17 +283,18 @@
             keys.forEach(key => {
                 const btn = document.createElement('button');
                 btn.type = "button";
-                btn.className = `w-full text-left px-3 py-2 rounded-lg border transition-all flex items-center justify-between ${window.selectedPatientId === key ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200' : 'bg-slate-950/40 border-slate-800/80 hover:bg-slate-900/50 text-slate-300'}`;
-                btn.onclick = () => window.viewPatient(key);
+                btn.className = `w-full text-left px-3 py-2 rounded-lg border transition-all flex items-center justify-between ${selectedPatientId === key ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200' : 'bg-slate-950/40 border-slate-800/80 hover:bg-slate-900/50 text-slate-300'}`;
+                btn.onclick = () => viewPatient(key);
                 btn.innerHTML = `<span><i class="fa-regular fa-user text-[10px] mr-1.5 opacity-60"></i> ${patients[key].nome}</span><i class="fa-solid fa-chevron-right text-[9px] opacity-40"></i>`;
                 listContainer.appendChild(btn);
             });
-        };
+        }
 
-        window.viewPatient = function(id) {
-            window.selectedPatientId = id;
-            const p = window.globalPatientsData[id];
-            window.renderPatientsList(window.globalPatientsData);
+        // Visualizzazione dettaglio singolo paziente
+        function viewPatient(id) {
+            selectedPatientId = id;
+            const p = globalPatientsData[id];
+            renderPatientsList(globalPatientsData);
             
             document.getElementById('patient-placeholder').classList.add('hidden');
             document.getElementById('patient-details').classList.remove('hidden');
@@ -365,13 +305,14 @@
             let eta = new Date().getFullYear() - nascita.getFullYear();
             document.getElementById('current-p-meta').innerText = `Nato il: ${nascita.toLocaleDateString('it-IT')} (${eta} anni)`;
 
-            window.loadPatientSessions(id);
-        };
+            loadPatientSessions(id);
+        }
 
-        window.loadPatientSessions = function(patientId) {
+        // Caricamento storico sessioni
+        function loadPatientSessions(patientId) {
             const container = document.getElementById('sessions-log');
-            const sessionsRef = window.fbRef(window.database, `pazienti/${patientId}/sessioni`);
-            window.fbOnValue(sessionsRef, (snapshot) => {
+            const sessionsRef = ref(db, `pazienti/${patientId}/sessioni`);
+            onValue(sessionsRef, (snapshot) => {
                 const data = snapshot.val();
                 container.innerHTML = '';
                 if (!data) { 
@@ -387,7 +328,7 @@
                         Object.keys(s.esercizi).forEach(ex => {
                             exHtml += `<div class="text-[11px] bg-slate-900/50 border border-slate-800/50 px-2 py-1 rounded flex items-center justify-between mt-1 text-slate-300">
                                 <span class="text-indigo-300"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> ${ex.replace(/_/g, ' ')}</span>
-                                <span class="text-slate-400">${s.exercises[ex].summary || ''}</span>
+                                <span class="text-slate-400">${s.esercizi[ex].summary || ''}</span>
                             </div>`;
                         });
                     } else { 
@@ -397,21 +338,64 @@
                     container.appendChild(div);
                 });
             });
+        }
+
+        // Funzione per salvare il Paziente (Spostata nel modulo: ora vede db, ref, push direttamente!)
+        window.savePatient = function() {
+            const nome = document.getElementById('p-nome').value.trim();
+            const nascita = document.getElementById('p-nascita').value;
+            const note = document.getElementById('p-note').value.trim();
+            
+            if (!nome || !nascita) { 
+                alert("Inserire Cognome, Nome e Data di Nascita."); 
+                return; 
+            }
+
+            const patientsRef = ref(db, 'pazienti');
+            push(patientsRef, { 
+                nome: nome, 
+                nascita: nascita, 
+                note: note || "Nessuna nota." 
+            }).then(() => {
+                document.getElementById('p-nome').value = '';
+                document.getElementById('p-nascita').value = '';
+                document.getElementById('p-note').value = '';
+                window.toggleAddPatientForm();
+            }).catch((err) => {
+                alert("Errore nel salvataggio: " + err.message);
+            });
         };
 
-        window.startSession = function() {
-            if (!window.selectedPatientId) return;
-            const dataCorrente = new Date().toLocaleString('it-IT');
-            const sessionRef = window.fbPush(window.fbRef(window.database, `pazienti/${window.selectedPatientId}/sessioni`));
-            window.activeSessionId = sessionRef.key;
+        // Gestione Login dell'Hub
+        window.handleLogin = function(event) {
+            event.preventDefault();
+            const userIn = document.getElementById('username').value;
+            const passIn = document.getElementById('password').value;
+            if (userIn === "Enrico" && passIn === "1234") {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-hub').classList.remove('hidden');
+                document.getElementById('patients-list').innerHTML = 'Connessione al database in corso...';
+                initDatabaseListeners();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+                document.getElementById('password').value = '';
+            }
+        };
 
-            window.fbSet(sessionRef, { data: dataCorrente, timestamp: Date.now() }).then(() => {
+        // Gestione dell'avvio e interruzione sessione clinica
+        window.startSession = function() {
+            if (!selectedPatientId) return;
+            const dataCorrente = new Date().toLocaleString('it-IT');
+            const sessionRef = push(ref(db, `pazienti/${selectedPatientId}/sessioni`));
+            activeSessionId = sessionRef.key;
+
+            set(sessionRef, { data: dataCorrente, timestamp: Date.now() }).then(() => {
                 document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
                 document.getElementById('exercise-overlay').classList.add('hidden');
                 document.getElementById('btn-session').classList.add('hidden');
                 document.getElementById('btn-stop-session').classList.remove('hidden');
-                localStorage.setItem('neurocenter_active_patient_id', window.selectedPatientId);
-                localStorage.setItem('neurocenter_active_session_id', window.activeSessionId);
+                localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
+                localStorage.setItem('neurocenter_active_session_id', activeSessionId);
             });
         };
 
@@ -420,26 +404,33 @@
             document.getElementById('exercise-overlay').classList.remove('hidden');
             document.getElementById('btn-session').classList.remove('hidden');
             document.getElementById('btn-stop-session').classList.add('hidden');
-            window.activeSessionId = null;
+            activeSessionId = null;
             localStorage.removeItem('neurocenter_active_patient_id');
             localStorage.removeItem('neurocenter_active_session_id');
         };
 
+        // Esportazione funzioni di interfaccia al contesto globale window per i vecchi pulsanti HTML inline
+        window.toggleAddPatientForm = function() {
+            document.getElementById('add-patient-form').classList.toggle('hidden');
+        };
+
+        window.viewPatient = viewPatient;
+
         window.launchExercise = function(url) {
-            if (!window.activeSessionId) { 
+            if (!activeSessionId) { 
                 alert("Avvia la sessione prima."); 
                 return; 
             }
             window.open(url, '_blank');
         };
 
-        // Ascolto messaggi dagli esercizi figli
+        // Ascolto messaggi di log dagli esercizi figli aperti in altre schede
         window.addEventListener('message', function(event) {
             if (event.data && event.data.type === 'NEUROCENTER_SAVE_DATA') {
                 const pId = localStorage.getItem('neurocenter_active_patient_id');
                 const sId = localStorage.getItem('neurocenter_active_session_id');
-                if (pId && sId && window.database && window.fbSet) {
-                    window.fbSet(window.fbRef(window.database, `pazienti/${pId}/sessioni/${sId}/esercizi/${event.data.exerciseName}`), {
+                if (pId && sId) {
+                    set(ref(db, `pazienti/${pId}/sessioni/${sId}/esercizi/${event.data.exerciseName}`), {
                         metrics: event.data.metrics,
                         summary: event.data.summary,
                         timestamp: Date.now()
