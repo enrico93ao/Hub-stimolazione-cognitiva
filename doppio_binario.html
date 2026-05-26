@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Doppio Binario - Test di Multitasking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        
+        :root {
+            --bg-dark: #020617;
+            --accent-blue: #38bdf8;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            overflow: hidden;
+            margin: 0;
+            user-select: none;
+            touch-action: none;
+            height: 100vh;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        .word-item {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 1.8rem;
+            text-shadow: 0 0 15px rgba(0,0,0,0.7);
+            transition: opacity 0.3s ease, filter 0.3s ease;
+            cursor: default;
+            letter-spacing: -0.02em;
+            padding: 5px 12px;
+            border-radius: 12px;
+            z-index: 10;
+            will-change: transform;
+        }
+
+        .target-dots {
+            display: flex;
+            gap: 4px;
+            margin-top: -4px;
+            height: 6px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .dot-active {
+            background: #fbbf24;
+            box-shadow: 0 0 8px #fbbf24;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes hitScale {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .word-hit { animation: hitScale 0.15s ease-out; }
+
+        .feedback-pop {
+            position: absolute;
+            pointer-events: none;
+            animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-weight: 800;
+            z-index: 60;
+        }
+
+        @keyframes popUp {
+            0% { opacity: 0; transform: translateY(10px) scale(0.8); }
+            20% { opacity: 1; transform: translateY(0) scale(1.1); }
+            100% { opacity: 0; transform: translateY(-40px) scale(1); }
+        }
+
+        .virtual-key {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            box-shadow: 0 6px 0 #020617;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.05s active;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .virtual-key:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #020617;
+        }
+
+        #play-area {
+            position: absolute;
+            top: 100px;
+            bottom: 180px;
+            left: 0;
+            right: 0;
+            overflow: hidden;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 1rem;
+            border-radius: 1.5rem;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+    <div class="bg-glow"></div>
+
+    <div id="menu" class="glass-panel p-8 rounded-[2.5rem] shadow-2xl w-full max-w-lg z-[200] text-center mx-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-8 bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent italic">DOPPIO BINARIO</h1>
+        
+        <div class="space-y-6 text-left">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3 block text-center">Difficoltà</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="setDifficulty(1)" id="btn-diff-1" class="diff-btn p-4 rounded-2xl border-2 border-sky-500 bg-sky-500/10 text-sky-400 font-bold transition-all">
+                        <div class="text-lg">Standard</div>
+                        <div class="text-[10px] opacity-60 uppercase">2 REGOLE</div>
+                    </button>
+                    <button onclick="setDifficulty(2)" id="btn-diff-2" class="diff-btn p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/40 text-slate-400 font-bold transition-all">
+                        <div class="text-lg">Avanzato</div>
+                        <div class="text-[10px] opacity-60 uppercase">3 REGOLE</div>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3 block text-center">Aiuti Visivi</label>
+                <div class="flex gap-4">
+                    <button onclick="setShowDots(true)" id="dots-on" class="dots-btn flex-1 p-3 rounded-xl border-2 border-sky-500 bg-sky-500/10 text-sky-400 font-bold transition-all">Sì</button>
+                    <button onclick="setShowDots(false)" id="dots-off" class="dots-btn flex-1 p-3 rounded-xl border-2 border-slate-700 bg-slate-800/40 text-slate-400 font-bold transition-all">No</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3 block text-center">Durata</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="setDuration(120)" id="dur-120" class="dur-btn p-3 rounded-xl border-2 border-sky-500 bg-sky-500/10 text-sky-400 font-bold transition-all text-sm">2'</button>
+                    <button onclick="setDuration(240)" id="dur-240" class="dur-btn p-3 rounded-xl border-2 border-slate-700 bg-slate-800/40 text-slate-400 font-bold transition-all text-sm">4'</button>
+                    <button onclick="setDuration(360)" id="dur-360" class="dur-btn p-3 rounded-xl border-2 border-slate-700 bg-slate-800/40 text-slate-400 font-bold transition-all text-sm">6'</button>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full bg-white text-slate-900 font-black py-5 rounded-2xl text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-tighter mt-4">
+                Inizia Test
+            </button>
+        </div>
+    </div>
+
+    <div id="game-container" class="hidden fixed inset-0">
+        <div class="absolute top-4 left-4 right-4 flex items-center justify-between px-6 py-3 glass-panel rounded-2xl z-[100] border border-white/5">
+            <div class="flex items-center gap-4">
+                <div class="text-center">
+                    <div class="text-lg font-black text-white" id="score">0</div>
+                    <div class="text-[8px] text-slate-400 uppercase font-bold">Punti</div>
+                </div>
+                <div class="h-8 w-[1px] bg-white/10"></div>
+                <div class="text-center" id="speed-container">
+                    <div class="text-lg font-black text-sky-400" id="speed-display">1.8</div>
+                    <div class="text-[8px] text-slate-400 uppercase font-bold">Km/h</div>
+                </div>
+            </div>
+
+            <div class="text-center flex flex-col items-center">
+                <div class="text-xl font-black tabular-nums text-emerald-400" id="timer">2:00</div>
+                <div class="w-24 h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                    <div id="timer-progress" class="h-full bg-emerald-400 transition-all duration-1000 w-full"></div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <div class="text-sm font-black text-amber-400" id="combo-display">0</div>
+                <div class="text-[8px] text-slate-400 uppercase font-bold">Combo</div>
+            </div>
+        </div>
+
+        <div id="play-area"></div>
+
+        <div class="absolute bottom-6 left-0 right-0 flex justify-center gap-3 px-4 z-[100]">
+            <div id="touch-controls" class="flex gap-4 w-full max-w-xl">
+                <!-- I pulsanti verranno generati dinamicamente in base alle regole -->
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over" class="hidden glass-panel p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md z-[200] text-center mx-4">
+        <h2 class="text-2xl font-black text-slate-400 mb-6 uppercase tracking-widest italic">Analisi Conclusa</h2>
+        <div class="grid grid-cols-2 gap-3 mb-8 text-left">
+            <div class="stat-card">
+                <div class="text-3xl font-black text-white" id="final-score">0</div>
+                <div class="text-[10px] text-slate-400 uppercase font-bold">Punteggio</div>
+            </div>
+            <div class="stat-card">
+                <div class="text-3xl font-black text-emerald-400" id="stat-accuracy">0%</div>
+                <div class="text-[10px] text-slate-400 uppercase font-bold">Precisione</div>
+            </div>
+            <div class="stat-card">
+                <div class="text-3xl font-black text-amber-400" id="stat-combo">0</div>
+                <div class="text-[10px] text-slate-400 uppercase font-bold">Max Combo</div>
+            </div>
+            <div class="stat-card">
+                <div class="text-3xl font-black text-rose-400" id="stat-speed">0</div>
+                <div class="text-[10px] text-slate-400 uppercase font-bold">Top Speed</div>
+            </div>
+        </div>
+        <button onclick="location.reload()" class="w-full bg-white text-slate-900 font-black py-5 rounded-2xl text-lg shadow-xl uppercase">Ricomincia</button>
+    </div>
+
+    <script>
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        synth.set({ oscillator: { type: "triangle" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1 } });
+        const errorSynth = new Tone.FMSynth().toDestination();
+
+        function playSound(type) {
+            if (Tone.context.state !== 'running') Tone.start();
+            if (type === 'hit') synth.triggerAttackRelease("C5", "16n");
+            else if (type === 'complete') synth.triggerAttackRelease(["E5", "G5"], "8n");
+            else if (type === 'error') errorSynth.triggerAttackRelease("G2", "8n");
+        }
+
+        const wordCategories = {
+            animals: { list: ["LEONE", "GATTO", "CANE", "LUPO", "CERVO", "TIGRE", "ORSO", "AQUILA", "VOLPE", "RANA", "SQUALO", "BALENA", "ORCA", "PANDA", "KOALA", "GORILLA"] },
+            fruit: { list: ["MELA", "PERA", "BANANA", "KIWI", "PESCA", "ARANCIA", "UVA", "MANGO", "LIMONE", "CILIEGIA", "SUSINA", "ANANAS", "MELONE", "MORA", "LAMPONE"] },
+            transport: { list: ["AUTO", "TRENO", "AEREO", "NAVE", "BICI", "MOTO", "BUS", "METRO", "TRAM", "RAZZO", "CAMION", "ELICOTTERO"] },
+            colors: { list: ["ROSSO", "VERDE", "BLU", "GIALLO", "NERO", "BIANCO", "VIOLA", "ROSA", "GRIGIO", "MARRONE", "AZZURRO", "LILLA"] },
+            generic: { list: ["TAVOLO", "LIBRO", "CASA", "PORTA", "SOLE", "LUNA", "MARE", "MONTE", "PRATO", "FIUME", "CIELO", "ZAINO", "CHIAVE", "PENNA"] }
+        };
+
+        const availableConditions = [
+            { id: 'bold', label: 'GRASSETTO', check: (cat, text, isBold) => isBold },
+            { id: 'length5', label: '5 LETTERE', check: (cat, text) => text.length === 5 },
+            { id: 'length4', label: '4 LETTERE', check: (cat, text) => text.length === 4 },
+            { id: 'red', label: 'COLORE ROSSO', check: (cat, text, isBold, isRed) => isRed },
+            { id: 'cat_animals', label: 'ANIMALE', check: (cat) => cat === 'animals' },
+            { id: 'cat_fruit', label: 'FRUTTA', check: (cat) => cat === 'fruit' },
+            { id: 'cat_transport', label: 'VEICOLO', check: (cat) => cat === 'transport' },
+            { id: 'cat_colors', label: 'UN COLORE', check: (cat) => cat === 'colors' }
+        ];
+
+        let state = {
+            score: 0, combo: 0, maxCombo: 0, difficulty: 1, duration: 120, timeLeft: 120,
+            speed: 1.8, maxSpeed: 1.8, minSpeed: 1.2, showDots: true,
+            gameActive: false, words: [], activeRules: [], lastSpawnTime: 0,
+            correctHits: 0, totalKeypress: 0, completedWords: 0, lastFrameTime: 0
+        };
+
+        function setDifficulty(lvl) {
+            state.difficulty = lvl;
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.replace('border-sky-500', 'border-slate-700'));
+            document.getElementById(`btn-diff-${lvl}`).classList.replace('border-slate-700', 'border-sky-500');
+        }
+
+        function setDuration(sec) {
+            state.duration = sec;
+            state.timeLeft = sec;
+            document.querySelectorAll('.dur-btn').forEach(b => b.classList.replace('border-sky-500', 'border-slate-700'));
+            document.getElementById(`dur-${sec}`).classList.replace('border-slate-700', 'border-sky-500');
+        }
+
+        function setShowDots(val) {
+            state.showDots = val;
+            document.querySelectorAll('.dots-btn').forEach(b => b.classList.replace('border-sky-500', 'border-slate-700'));
+            const activeId = val ? 'dots-on' : 'dots-off';
+            document.getElementById(activeId).classList.replace('border-slate-700', 'border-sky-500');
+        }
+
+        function startGame() {
+            const shuffled = [...availableConditions].sort(() => 0.5 - Math.random());
+            const numRules = state.difficulty === 1 ? 2 : 3;
+            const keys = ['A', 'S', 'D'];
+            const colors = ['text-sky-400', 'text-emerald-400', 'text-rose-400'];
+            
+            state.activeRules = shuffled.slice(0, numRules).map((rule, index) => ({
+                ...rule, key: keys[index], color: colors[index]
+            }));
+
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            state.gameActive = true;
+            state.lastSpawnTime = performance.now();
+            state.lastFrameTime = performance.now();
+
+            const controls = document.getElementById('touch-controls');
+            controls.innerHTML = state.activeRules.map(r => `
+                <button 
+                    onpointerdown="handleInput('${r.key}')" 
+                    class="virtual-key flex-1 p-4 rounded-2xl flex flex-col items-center justify-center gap-1 ${r.color}">
+                    <span class="text-3xl font-black">${r.key}</span>
+                    <span class="text-[8px] font-bold uppercase text-center leading-tight">${r.label}</span>
+                </button>
+            `).join('');
+
+            updateHUD();
+            requestAnimationFrame(gameLoop);
+            
+            const timerInterval = setInterval(() => { 
+                if(state.gameActive) { 
+                    state.timeLeft--; 
+                    updateHUD(); 
+                    if(state.timeLeft <= 0) { clearInterval(timerInterval); endGame(); }
+                } else clearInterval(timerInterval);
+            }, 1000);
+        }
+
+        function updateHUD() {
+            const mins = Math.floor(state.timeLeft / 60);
+            const secs = state.timeLeft % 60;
+            document.getElementById('timer').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+            document.getElementById('timer-progress').style.width = `${(state.timeLeft / state.duration) * 100}%`;
+            document.getElementById('score').innerText = state.score;
+            document.getElementById('combo-display').innerText = state.combo;
+            document.getElementById('speed-display').innerText = state.speed.toFixed(1);
+        }
+
+        function spawnWord() {
+            const categories = Object.keys(wordCategories);
+            const cat = categories[Math.floor(Math.random() * categories.length)];
+            const text = wordCategories[cat].list[Math.floor(Math.random() * wordCategories[cat].list.length)];
+            const isBold = Math.random() > 0.7;
+            const isRed = Math.random() > 0.8;
+            const targets = state.activeRules.filter(r => r.check(cat, text, isBold, isRed)).map(r => r.key);
+            
+            const area = document.getElementById('play-area');
+            const el = document.createElement('div');
+            el.className = 'word-item';
+            el.innerHTML = `<span>${text}</span><div class="target-dots"></div>`;
+            
+            const lane = Math.floor(Math.random() * 5); 
+            const laneWidth = area.clientWidth / 5;
+            el.style.left = `${(lane * laneWidth) + (laneWidth/2) - 60}px`;
+            el.style.fontWeight = isBold ? '900' : '500';
+            el.style.color = isRed ? '#fb7185' : '#f8fafc';
+            
+            if (state.showDots) {
+                const dots = el.querySelector('.target-dots');
+                targets.forEach(() => dots.innerHTML += '<div class="dot"></div>');
+            }
+
+            const wordObj = { el, targets: [...targets], total: targets.length, y: -50, processed: false };
+            area.appendChild(el);
+            state.words.push(wordObj);
+        }
+
+        function handleInput(key) {
+            if(!state.gameActive) return;
+            state.totalKeypress++;
+
+            let candidates = state.words
+                .filter(w => !w.processed && w.y > 0 && w.targets.includes(key))
+                .sort((a, b) => b.y - a.y);
+
+            const target = candidates[0];
+
+            if(target) {
+                const idx = target.targets.indexOf(key);
+                target.targets.splice(idx, 1);
+                state.score += 10;
+                state.combo++;
+                state.maxCombo = Math.max(state.maxCombo, state.combo);
+                state.correctHits++; 
+
+                if(state.correctHits % 2 === 0) {
+                    state.speed += 0.15;
+                    state.maxSpeed = Math.max(state.maxSpeed, state.speed);
+                    triggerSpeedFeedback('up');
+                }
+                
+                target.el.classList.add('word-hit');
+                setTimeout(() => target.el.classList.remove('word-hit'), 150);
+                
+                if (state.showDots) {
+                    const dots = target.el.querySelectorAll('.dot');
+                    const activeCount = target.total - target.targets.length;
+                    for(let i=0; i<activeCount; i++) dots[i].classList.add('dot-active');
+                }
+
+                if(target.targets.length === 0) {
+                    target.processed = true;
+                    state.completedWords++;
+                    target.el.style.opacity = '0.2';
+                    target.el.style.filter = 'blur(4px)';
+                    playSound('complete');
+                    applyFeedback('PERFETTO!', 'text-emerald-400', target.el.offsetLeft, target.y);
+                } else {
+                    playSound('hit');
+                    applyFeedback('OK!', 'text-sky-400', target.el.offsetLeft, target.y);
+                }
+            } else {
+                state.score = Math.max(0, state.score - 5);
+                state.combo = 0;
+                state.speed = Math.max(state.minSpeed, state.speed - 0.10);
+                playSound('error');
+                triggerSpeedFeedback('down');
+                applyFeedback('ERRORE', 'text-rose-500', window.innerWidth/2 - 40, window.innerHeight/2);
+            }
+            updateHUD();
+        }
+
+        function triggerSpeedFeedback(type) {
+            const speedEl = document.getElementById('speed-display');
+            speedEl.style.color = type === 'up' ? '#38bdf8' : '#f43f5e';
+            setTimeout(() => speedEl.style.color = '#38bdf8', 300);
+        }
+
+        function applyFeedback(text, cls, x, y) {
+            const fb = document.createElement('div');
+            fb.className = `feedback-pop ${cls} text-xs font-black`;
+            fb.style.left = `${x}px`; fb.style.top = `${y}px`;
+            fb.innerText = text;
+            document.getElementById('play-area').appendChild(fb);
+            setTimeout(() => fb.remove(), 600);
+        }
+
+        function gameLoop(currentTime) {
+            if(!state.gameActive) return;
+
+            const deltaTime = (currentTime - state.lastFrameTime) / 16.67; 
+            state.lastFrameTime = currentTime;
+
+            const spawnInterval = Math.max(450, 2200 / (1 + (state.speed - 1.8) * 0.7));
+            if(currentTime - state.lastSpawnTime > spawnInterval) {
+                spawnWord();
+                state.lastSpawnTime = currentTime;
+            }
+
+            const area = document.getElementById('play-area');
+            const limit = area.clientHeight;
+
+            for(let i=state.words.length-1; i>=0; i--) {
+                const w = state.words[i];
+                w.y += state.speed * deltaTime;
+                w.el.style.transform = `translateY(${w.y}px)`;
+
+                if(w.y > limit) {
+                    if(!w.processed && w.targets.length > 0) {
+                        state.score = Math.max(0, state.score - 10);
+                        state.combo = 0;
+                        state.speed = Math.max(state.minSpeed, state.speed - 0.10);
+                        playSound('error');
+                        triggerSpeedFeedback('down');
+                        updateHUD();
+                    }
+                    w.el.remove();
+                    state.words.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            state.gameActive = false;
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('game-over').classList.remove('hidden');
+            const accuracy = state.totalKeypress > 0 ? Math.round((state.correctHits / state.totalKeypress) * 100) : 0;
+            document.getElementById('final-score').innerText = state.score;
+            document.getElementById('stat-accuracy').innerText = accuracy + "%";
+            document.getElementById('stat-combo').innerText = state.maxCombo;
+            document.getElementById('stat-speed').innerText = state.maxSpeed.toFixed(1);
+        }
+
+        window.onkeydown = (e) => {
+            const k = e.key.toUpperCase();
+            if(['A','S','D'].includes(k)) { e.preventDefault(); handleInput(k); }
+        };
+    </script>
+</body>
+</html>
