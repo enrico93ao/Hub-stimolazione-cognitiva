@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piattaforma Multimodale di Neuro-Potenziamento</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -272,8 +272,9 @@
         
         // Memoria interna dell'esercizio corrente aperto nell'Iframe
         var currentActiveExerciseName = "";
+        var hasSavedViaPostMessage = false;
 
-        // Configurazione Firebase Specifica con URL del Database in Belgio
+        // Configurazione Firebase Specifica
         const firebaseConfig = {
             apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
             authDomain: "neurocenter-stimolazione.firebaseapp.com",
@@ -288,6 +289,33 @@
         // Inizializzazione sicura
         firebase.initializeApp(firebaseConfig);
         database = firebase.database();
+
+        // RICEVITORE DEI MESSAGGI DAGLI ESERCIZI (postMessage)
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'NEUROCENTER_SAVE_DATA') {
+                console.log("Dati ricevuti dal modulo di stimolazione:", event.data);
+                
+                var pId = selectedPatientId || localStorage.getItem('neurocenter_active_patient_id');
+                var sId = activeSessionId || localStorage.getItem('neurocenter_active_session_id');
+                
+                if (pId && sId && pId !== 'FREE') {
+                    var rawName = event.data.exerciseName || currentActiveExerciseName || "Esercizio";
+                    var cleanDbKey = rawName.replace(/ /g, '_');
+                    
+                    // Salviamo il pacchetto strutturato inviato dall'esercizio
+                    database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
+                        summary: event.data.summary,
+                        data: event.data.data,
+                        timestamp: Date.now()
+                    }).then(function() {
+                        console.log("Statistiche caricate con successo nel database.");
+                        hasSavedViaPostMessage = true;
+                    }).catch(function(err) {
+                        console.error("Errore durante il caricamento dati:", err);
+                    });
+                }
+            }
+        });
 
         function handleLogin(event) {
             event.preventDefault();
@@ -377,7 +405,7 @@
                         Object.keys(s.esercizi).forEach(function(ex) {
                             exHtml += '<div class="text-[11px] bg-slate-900/50 border border-slate-800/50 px-2 py-1 rounded flex items-center justify-between mt-1 text-slate-300">' +
                                 '<span class="text-indigo-300"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> ' + ex.replace(/_/g, ' ') + '</span>' +
-                                '<span class="text-slate-400 text-[10px]">' + (s.esercizi[ex].summary || 'Eseguito') + '</span>' +
+                                '<span class="text-slate-400 text-[10px] font-mono">' + (s.esercizi[ex].summary || 'Eseguito') + '</span>' +
                             '</div>';
                         });
                     } else { 
@@ -421,49 +449,6 @@
                 });
         }
 
-        // APERTURA INLINE DELL'ESERCIZIO
-        function launchExerciseInline(url, title) {
-            if (!activeSessionId) { 
-                alert("Attiva prima una sessione (paziente o libera)."); 
-                return; 
-            }
-            
-            // Memorizziamo quale esercizio stiamo caricando
-            currentActiveExerciseName = title;
-            
-            document.getElementById('active-exercise-title').innerText = "Modulo Attivo: " + title;
-            document.getElementById('exercise-iframe').src = url;
-            document.getElementById('exercise-frame-container').classList.remove('hidden');
-        }
-
-        // CHIUSURA E TRACCIAMENTO AUTOMATICO (OPZIONE 2)
-        function closeExerciseInline() {
-            var pId = localStorage.getItem('neurocenter_active_patient_id');
-            var sId = localStorage.getItem('neurocenter_active_session_id');
-            
-            // Se c'è un paziente attivo e un esercizio in esecuzione, lo salviamo all'uscita
-            if (pId && sId && pId !== 'FREE' && currentActiveExerciseName !== "") {
-                var cleanDbKey = currentActiveExerciseName.replace(/ /g, '_');
-                var timestampCorrente = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-                
-                database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
-                    summary: "Svolto alle " + timestampCorrente + " (In-App)",
-                    timestamp: Date.now()
-                });
-            }
-            
-            // Ripristino parametri e pulizia Iframe
-            currentActiveExerciseName = "";
-            document.getElementById('exercise-frame-container').classList.add('hidden');
-            document.getElementById('exercise-iframe').src = "about:blank";
-        }
-
-        function returnToHomeReal() {
-            localStorage.removeItem('neurocenter_active_patient_id');
-            localStorage.removeItem('neurocenter_active_session_id');
-            window.location.reload();
-        }
-
         function startSession() {
             if (!selectedPatientId) return;
             var dataCorrente = new Date().toLocaleString('it-IT');
@@ -471,72 +456,96 @@
             activeSessionId = sessionRef.key;
 
             sessionRef.set({ data: dataCorrente, timestamp: Date.now() }).then(function() {
+                localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
+                localStorage.setItem('neurocenter_active_session_id', activeSessionId);
+                
                 document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
                 document.getElementById('exercise-overlay').classList.add('hidden');
                 document.getElementById('btn-session').classList.add('hidden');
                 document.getElementById('btn-stop-session').classList.remove('hidden');
-                localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
-                localStorage.setItem('neurocenter_active_session_id', activeSessionId);
             });
         }
 
         function startFreeSession() {
             isFreeSession = true;
-            selectedPatientId = null;
+            selectedPatientId = "FREE";
             activeSessionId = "FREE_SESSION_" + Date.now();
             
+            localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
+            localStorage.setItem('neurocenter_active_session_id', activeSessionId);
+
             document.getElementById('patient-placeholder').classList.add('hidden');
             document.getElementById('patient-details').classList.remove('hidden');
-            
-            document.getElementById('current-p-name').innerText = "Sessione Libera / Valutazione Rapida";
-            document.getElementById('current-p-meta').innerText = "Nessun dato verrà memorizzato sul cloud.";
             document.getElementById('notes-container').classList.add('hidden');
             document.getElementById('logs-container').classList.add('hidden');
             
-            document.getElementById('btn-session').classList.add('hidden');
-            document.getElementById('btn-stop-session').classList.remove('hidden');
+            document.getElementById('current-p-name').innerText = "Sessione Estemporanea Libera";
+            document.getElementById('current-p-meta').innerText = "Nessun salvataggio dati abilitato sul cloud.";
             
             document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
             document.getElementById('exercise-overlay').classList.add('hidden');
-            
-            localStorage.setItem('neurocenter_active_patient_id', 'FREE');
-            localStorage.setItem('neurocenter_active_session_id', activeSessionId);
+            document.getElementById('btn-session').classList.add('hidden');
+            document.getElementById('btn-stop-session').classList.remove('hidden');
         }
 
         function stopSession() {
+            activeSessionId = null;
+            selectedPatientId = null;
+            localStorage.removeItem('neurocenter_active_patient_id');
+            localStorage.removeItem('neurocenter_active_session_id');
+            
             document.getElementById('exercises-container').classList.add('opacity-30', 'pointer-events-none');
             document.getElementById('exercise-overlay').classList.remove('hidden');
             document.getElementById('btn-session').classList.remove('hidden');
             document.getElementById('btn-stop-session').classList.add('hidden');
-            
-            activeSessionId = null;
-            localStorage.removeItem('neurocenter_active_patient_id');
-            localStorage.removeItem('neurocenter_active_session_id');
+            document.getElementById('patient-placeholder').classList.remove('hidden');
+            document.getElementById('patient-details').classList.add('hidden');
+        }
 
-            if (isFreeSession) {
-                isFreeSession = false;
-                document.getElementById('patient-details').classList.add('hidden');
-                document.getElementById('patient-placeholder').classList.remove('hidden');
+        function launchExerciseInline(url, title) {
+            if (!activeSessionId) { 
+                alert("Attiva prima una sessione (paziente o libera)."); 
+                return; 
             }
+            
+            currentActiveExerciseName = title;
+            hasSavedViaPostMessage = false;
+            
+            document.getElementById('active-exercise-title').innerText = "Modulo Attivo: " + title;
+            document.getElementById('exercise-iframe').src = url;
+            document.getElementById('exercise-frame-container').classList.remove('hidden');
+        }
+
+        function closeExerciseInline() {
+            var pId = localStorage.getItem('neurocenter_active_patient_id');
+            var sId = localStorage.getItem('neurocenter_active_session_id');
+            
+            // Fallback: Se l'esercizio non ha trasmesso i dati via postMessage, scrive la marcatura standard
+            if (pId && sId && pId !== 'FREE' && currentActiveExerciseName !== "" && !hasSavedViaPostMessage) {
+                var cleanDbKey = currentActiveExerciseName.replace(/ /g, '_');
+                var timestampCorrente = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+                
+                database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
+                    summary: "Eseguito alle " + timestampCorrente + " (In-App)",
+                    timestamp: Date.now()
+                });
+            }
+            
+            currentActiveExerciseName = "";
+            document.getElementById('exercise-frame-container').classList.add('hidden');
+            document.getElementById('exercise-iframe').src = "about:blank";
         }
 
         function toggleAddPatientForm() {
-            document.getElementById('add-patient-form').classList.toggle('hidden');
+            var form = document.getElementById('add-patient-form');
+            form.classList.toggle('hidden');
         }
 
-        // Struttura di ascolto opzionale se deciderai in futuro di mandare messaggi specifici dagli iframe
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'NEUROCENTER_SAVE_DATA') {
-                var pId = localStorage.getItem('neurocenter_active_patient_id');
-                var sId = localStorage.getItem('neurocenter_active_session_id');
-                if (pId && sId && pId !== 'FREE') {
-                    database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + event.data.exerciseName).set({
-                        summary: event.data.summary,
-                        timestamp: Date.now()
-                    });
-                }
-            }
-        });
+        function returnToHomeReal() {
+            localStorage.removeItem('neurocenter_active_patient_id');
+            localStorage.removeItem('neurocenter_active_session_id');
+            window.location.reload();
+        }
     </script>
 </body>
 </html>
