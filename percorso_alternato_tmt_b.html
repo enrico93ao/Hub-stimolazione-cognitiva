@@ -160,7 +160,6 @@
 </head>
 <body>
 
-    <!-- Menu Iniziale -->
     <div id="main-menu" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-50 overflow-y-auto">
         <div class="bg-white max-w-4xl w-full p-6 md:p-8 rounded-[2.5rem] shadow-2xl my-auto border border-slate-100">
             <div class="text-center mb-6 md:mb-8">
@@ -223,10 +222,8 @@
         </div>
     </div>
 
-    <!-- HUD di gioco superiore -->
     <div id="game-ui" class="fixed top-6 left-0 right-0 z-40 hidden flex justify-center items-center pointer-events-none">
         <div class="flex gap-2 p-2 glass-ui rounded-3xl shadow-xl pointer-events-auto">
-            <!-- Pulsante Home -->
             <button onclick="resetGame()" class="w-12 h-12 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -245,10 +242,8 @@
         </div>
     </div>
 
-    <!-- Area dei nodi di gioco -->
     <div id="game-canvas"></div>
 
-    <!-- Schermata di riepilogo finale -->
     <div id="results-overlay" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white max-w-sm w-full p-8 rounded-[2.5rem] shadow-2xl text-center">
             <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -493,7 +488,7 @@
                 }
                 
                 // Rimbalzo per non nascondere i nodi dietro la barra dell'HUD
-                if (n.y < hudHeight + radius && n.x > (w/2 - hudWidth/2 - radius) && n.x < (w/2 + hudWidth/2 + radius)) {
+                if (n.y < hudHeight + radius && n.x > (w/2 - hudWidth/2 - radius) && x < (w/2 + hudWidth/2 + radius)) {
                     n.vy = Math.abs(n.vy); // Spinge verso il basso
                 }
 
@@ -529,6 +524,26 @@
             document.getElementById('res-time').innerText = timerEl.innerText;
             document.getElementById('res-errors').innerText = state.errors;
             resultsOverlay.classList.remove('hidden');
+
+            // --- TRACCIAMENTO CLINICO AVANZATO (POST-MESSAGE) ---
+            if (window.parent) {
+                // Configura le etichette in italiano dei dizionari per il report clinico
+                let tipoNome = "Classico";
+                if (state.currentType === 'reverse') tipoNome = "Inverso";
+                if (state.currentType === 'romans') tipoNome = "Storico";
+                if (state.currentType === 'months') tipoNome = "Temporale";
+                if (state.currentType === 'days') tipoNome = "Settimanale";
+                if (state.currentType === 'compass') tipoNome = "Spaziale";
+
+                const modalitaGioco = state.isMoving ? "Dinamica" : "Statica";
+                const testoRiepilogo = `Mod: ${tipoNome} (${modalitaGioco}) | Tempo: ${timerEl.innerText} | Errori: ${state.errors}`;
+
+                window.parent.postMessage({
+                    type: 'NEUROCENTER_SAVE_DATA',
+                    exerciseName: 'TMT-B_Percorso_Alternato',
+                    summary: testoRiepilogo
+                }, '*');
+            }
         }
 
         window.resetGame = () => {
