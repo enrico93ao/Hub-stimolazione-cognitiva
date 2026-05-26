@@ -270,10 +270,11 @@
         var globalPatientsData = {};
         var database = null;
 
-        // Configurazione Firebase
+        // Configurazione Firebase Specifica con URL del Database in Belgio
         const firebaseConfig = {
             apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
             authDomain: "neurocenter-stimolazione.firebaseapp.com",
+            databaseURL: "https://neurocenter-stimolazione-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "neurocenter-stimolazione",
             storageBucket: "neurocenter-stimolazione.firebasestorage.app",
             messagingSenderId: "259470306894",
@@ -373,7 +374,7 @@
                         Object.keys(s.esercizi).forEach(function(ex) {
                             exHtml += '<div class="text-[11px] bg-slate-900/50 border border-slate-800/50 px-2 py-1 rounded flex items-center justify-between mt-1 text-slate-300">' +
                                 '<span class="text-indigo-300"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> ' + ex.replace(/_/g, ' ') + '</span>' +
-                                '<span class="text-slate-400">' + (s.exercises[ex].summary || '') + '</span>' +
+                                '<span class="text-slate-400">' + (s.esercizi[ex].summary || '') + '</span>' +
                             '</div>';
                         });
                     } else { 
@@ -385,7 +386,6 @@
             });
         }
 
-        // SALVATAGGIO REVISIONATO E COMPLETAMENTE COMPATIBILE
         function savePatient() {
             var nomeInput = document.getElementById('p-nome');
             var nascitaInput = document.getElementById('p-nascita');
@@ -414,7 +414,7 @@
                     toggleAddPatientForm();
                 })
                 .catch(function(err) {
-                    alert("Errore di scrittura: " + err.message + "\nHai configurato le Rules su Firebase Console?");
+                    alert("Errore di scrittura: " + err.message);
                 });
         }
 
@@ -436,10 +436,8 @@
 
         // LOGICA RITORNO ALLA HOME REALE
         function returnToHomeReal() {
-            // Svuota i parametri locali di sessione
             localStorage.removeItem('neurocenter_active_patient_id');
             localStorage.removeItem('neurocenter_active_session_id');
-            // Forza il browser a ricaricare la pagina web pulita alla radice
             window.location.reload();
         }
 
