@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; }
         .bg-gradient-radial {
@@ -104,9 +108,13 @@
             </div>
 
             <div class="lg:col-span-2 bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 backdrop-blur-sm">
-                <div id="patient-placeholder" class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-10">
+                
+                <div id="patient-placeholder" class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-6">
                     <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-700"></i>
-                    <p class="text-xs">Seleziona un paziente per consultare la cartella clinica, visionare i log ed avviare la sessione.</p>
+                    <p class="text-xs max-w-md mb-4">Seleziona un paziente per consultare la cartella clinica oppure avvia una sessione estemporanea senza salvare dati.</p>
+                    <button onclick="startFreeSession()" class="bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/40 text-indigo-300 hover:text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Avvia Sessione Libera
+                    </button>
                 </div>
 
                 <div id="patient-details" class="hidden h-full flex flex-col justify-between">
@@ -125,13 +133,13 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="mb-4">
+                        <div id="notes-container" class="mb-4">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Inquadramento Diagnostico / Note</span>
                             <p id="current-p-notes" class="text-xs text-slate-300 bg-slate-950/40 border border-slate-800/60 p-2.5 rounded-lg italic">---</p>
                         </div>
                     </div>
 
-                    <div>
+                    <div id="logs-container">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-2">Storico Allenamenti</span>
                         <div id="sessions-log" class="space-y-2 max-h-[120px] overflow-y-auto custom-scroll pr-1 text-xs">
                             Nessuna sessione registrata.
@@ -144,7 +152,7 @@
         <div id="exercises-container" class="opacity-30 pointer-events-none transition-opacity duration-300 relative">
             <div id="exercise-overlay" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] z-20 flex items-center justify-center text-center px-4">
                 <div class="bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-xl text-xs text-slate-400 font-medium shadow-2xl flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-indigo-400"></i> Seleziona un paziente e clicca su "Avvia Nuova Sessione" per sbloccare la somministrazione dei test.
+                    <i class="fa-solid fa-circle-info text-indigo-400"></i> Seleziona un paziente o attiva la "Sessione Libera" per sbloccare la somministrazione dei test.
                 </div>
             </div>
 
@@ -230,14 +238,18 @@
     </div>
 
     <div class="mt-20 pt-6 border-t border-slate-900 text-center text-[11px] text-slate-600 tracking-wide uppercase">
-        Sistema Centrale di Riabilitazione Neuropsicologica • Cloud CRM Sincronizzato via Firebase SDK
+        Sistema Centrale di Riabilitazione Neuropsicologica • Cloud CRM Sincronizzato via Firebase Compat SDK
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <script>
+        // Stato Globale dell'Hub
+        var selectedPatientId = null;
+        var activeSessionId = null;
+        var isFreeSession = false;
+        var globalPatientsData = {};
+        var database = null;
 
-        // Configurazione Firebase
+        // Inizializzazione Firebase nativa globale
         const firebaseConfig = {
             apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
             authDomain: "neurocenter-stimolazione.firebaseapp.com",
@@ -248,148 +260,141 @@
             measurementId: "G-R7W54NWQ4G"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Inizializza l'applicazione Firebase globale
+        firebase.initializeApp(firebaseConfig);
+        database = firebase.database();
 
-        // Stato dell'applicazione locale
-        let selectedPatientId = null;
-        let activeSessionId = null;
-        let globalPatientsData = {};
+        function handleLogin(event) {
+            event.preventDefault();
+            var userIn = document.getElementById('username').value;
+            var passIn = document.getElementById('password').value;
+            if (userIn === "Enrico" && passIn === "1234") {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-hub').classList.remove('hidden');
+                document.getElementById('patients-list').innerHTML = 'Caricamento elenco pazienti...';
+                initDatabaseListeners();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+                document.getElementById('password').value = '';
+            }
+        }
 
-        // Funzione per inizializzare gli ascoltatori dei dati dei pazienti
         function initDatabaseListeners() {
-            const patientsRef = ref(db, 'pazienti');
-            onValue(patientsRef, (snapshot) => {
+            database.ref('pazienti').on('value', function(snapshot) {
                 globalPatientsData = snapshot.val() || {};
                 renderPatientsList(globalPatientsData);
                 if (selectedPatientId) viewPatient(selectedPatientId);
-            }, (error) => {
-                console.error("Errore Firebase:", error);
-                document.getElementById('patients-list').innerHTML = '<p class="text-rose-400 py-2">Errore di connessione al database.</p>';
+            }, function(error) {
+                console.error("Errore Firebase Database:", error);
+                document.getElementById('patients-list').innerHTML = '<p class="text-rose-400 py-2">Errore di sincronizzazione.</p>';
             });
         }
 
-        // Renderizzazione lista pazienti
         function renderPatientsList(patients) {
-            const listContainer = document.getElementById('patients-list');
+            var listContainer = document.getElementById('patients-list');
             listContainer.innerHTML = '';
-            const keys = Object.keys(patients);
+            var keys = Object.keys(patients);
             
             if (keys.length === 0) { 
                 listContainer.innerHTML = '<p class="italic text-slate-600 py-2">Nessun paziente inserito.</p>'; 
                 return; 
             }
             
-            keys.forEach(key => {
-                const btn = document.createElement('button');
+            keys.forEach(function(key) {
+                var btn = document.createElement('button');
                 btn.type = "button";
-                btn.className = `w-full text-left px-3 py-2 rounded-lg border transition-all flex items-center justify-between ${selectedPatientId === key ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200' : 'bg-slate-950/40 border-slate-800/80 hover:bg-slate-900/50 text-slate-300'}`;
-                btn.onclick = () => viewPatient(key);
-                btn.innerHTML = `<span><i class="fa-regular fa-user text-[10px] mr-1.5 opacity-60"></i> ${patients[key].nome}</span><i class="fa-solid fa-chevron-right text-[9px] opacity-40"></i>`;
+                btn.className = "w-full text-left px-3 py-2 rounded-lg border transition-all flex items-center justify-between " + 
+                                (selectedPatientId === key ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-200" : "bg-slate-950/40 border-slate-800/80 hover:bg-slate-900/50 text-slate-300");
+                btn.onclick = function() { viewPatient(key); };
+                btn.innerHTML = '<span><i class="fa-regular fa-user text-[10px] mr-1.5 opacity-60"></i> ' + patients[key].nome + '</span><i class="fa-solid fa-chevron-right text-[9px] opacity-40"></i>';
                 listContainer.appendChild(btn);
             });
         }
 
-        // Visualizzazione dettaglio singolo paziente
         function viewPatient(id) {
+            isFreeSession = false;
             selectedPatientId = id;
-            const p = globalPatientsData[id];
+            var p = globalPatientsData[id];
             renderPatientsList(globalPatientsData);
             
             document.getElementById('patient-placeholder').classList.add('hidden');
             document.getElementById('patient-details').classList.remove('hidden');
+            document.getElementById('notes-container').classList.remove('hidden');
+            document.getElementById('logs-container').classList.remove('hidden');
+            
             document.getElementById('current-p-name').innerText = p.nome;
             document.getElementById('current-p-notes').innerText = p.note;
 
-            const nascita = new Date(p.nascita);
-            let eta = new Date().getFullYear() - nascita.getFullYear();
-            document.getElementById('current-p-meta').innerText = `Nato il: ${nascita.toLocaleDateString('it-IT')} (${eta} anni)`;
+            var nascita = new Date(p.nascita);
+            var eta = new Date().getFullYear() - nascita.getFullYear();
+            document.getElementById('current-p-meta').innerText = "Nato il: " + nascita.toLocaleDateString('it-IT') + " (" + eta + " anni)";
 
             loadPatientSessions(id);
         }
 
-        // Caricamento storico sessioni
         function loadPatientSessions(patientId) {
-            const container = document.getElementById('sessions-log');
-            const sessionsRef = ref(db, `pazienti/${patientId}/sessioni`);
-            onValue(sessionsRef, (snapshot) => {
-                const data = snapshot.val();
+            var container = document.getElementById('sessions-log');
+            database.ref('pazienti/' + patientId + '/sessioni').on('value', function(snapshot) {
+                var data = snapshot.val();
                 container.innerHTML = '';
                 if (!data) { 
                     container.innerHTML = '<p class="italic text-slate-600">Nessun allenamento salvato.</p>'; 
                     return; 
                 }
-                Object.keys(data).reverse().forEach(sId => {
-                    const s = data[sId];
-                    const div = document.createElement('div');
+                Object.keys(data).reverse().forEach(function(sId) {
+                    var s = data[sId];
+                    var div = document.createElement('div');
                     div.className = "bg-slate-950/40 border border-slate-800/80 rounded-lg p-2.5 mb-1.5";
-                    let exHtml = '';
+                    var exHtml = '';
                     if (s.esercizi) {
-                        Object.keys(s.esercizi).forEach(ex => {
-                            exHtml += `<div class="text-[11px] bg-slate-900/50 border border-slate-800/50 px-2 py-1 rounded flex items-center justify-between mt-1 text-slate-300">
-                                <span class="text-indigo-300"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> ${ex.replace(/_/g, ' ')}</span>
-                                <span class="text-slate-400">${s.esercizi[ex].summary || ''}</span>
-                            </div>`;
+                        Object.keys(s.esercizi).forEach(function(ex) {
+                            exHtml += '<div class="text-[11px] bg-slate-900/50 border border-slate-800/50 px-2 py-1 rounded flex items-center justify-between mt-1 text-slate-300">' +
+                                '<span class="text-indigo-300"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> ' + ex.replace(/_/g, ' ') + '</span>' +
+                                '<span class="text-slate-400">' + (s.esercizi[ex].summary || '') + '</span>' +
+                            '</div>';
                         });
                     } else { 
                         exHtml = '<p class="text-[11px] text-slate-600 italic">Nessun esercizio completato.</p>'; 
                     }
-                    div.innerHTML = `<div class="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-900 pb-1"><span><i class="fa-regular fa-calendar-check mr-1 text-indigo-400"></i> Sessione: ${s.data}</span></div>${exHtml}`;
+                    div.innerHTML = '<div class="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-900 pb-1"><span><i class="fa-regular fa-calendar-check mr-1 text-indigo-400"></i> Sessione: ' + s.data + '</span></div>' + exHtml;
                     container.appendChild(div);
                 });
             });
         }
 
-        // Funzione per salvare il Paziente (Spostata nel modulo: ora vede db, ref, push direttamente!)
-        window.savePatient = function() {
-            const nome = document.getElementById('p-nome').value.trim();
-            const nascita = document.getElementById('p-nascita').value;
-            const note = document.getElementById('p-note').value.trim();
+        // Funzione Salva Paziente (Completamente riscritta e stabile al 100%)
+        function savePatient() {
+            var nome = document.getElementById('p-nome').value.trim();
+            var nascita = document.getElementById('p-nascita').value;
+            var note = document.getElementById('p-note').value.trim();
             
             if (!nome || !nascita) { 
                 alert("Inserire Cognome, Nome e Data di Nascita."); 
                 return; 
             }
 
-            const patientsRef = ref(db, 'pazienti');
-            push(patientsRef, { 
-                nome: nome, 
-                nascita: nascita, 
-                note: note || "Nessuna nota." 
-            }).then(() => {
+            database.ref('pazienti').push({
+                nome: nome,
+                nascita: nascita,
+                note: note || "Nessuna nota."
+            }).then(function() {
                 document.getElementById('p-nome').value = '';
                 document.getElementById('p-nascita').value = '';
                 document.getElementById('p-note').value = '';
-                window.toggleAddPatientForm();
-            }).catch((err) => {
-                alert("Errore nel salvataggio: " + err.message);
+                toggleAddPatientForm();
+            }).catch(function(err) {
+                alert("Errore durante il salvataggio: " + err.message);
             });
-        };
+        }
 
-        // Gestione Login dell'Hub
-        window.handleLogin = function(event) {
-            event.preventDefault();
-            const userIn = document.getElementById('username').value;
-            const passIn = document.getElementById('password').value;
-            if (userIn === "Enrico" && passIn === "1234") {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-hub').classList.remove('hidden');
-                document.getElementById('patients-list').innerHTML = 'Connessione al database in corso...';
-                initDatabaseListeners();
-            } else {
-                document.getElementById('login-error').classList.remove('hidden');
-                document.getElementById('password').value = '';
-            }
-        };
-
-        // Gestione dell'avvio e interruzione sessione clinica
-        window.startSession = function() {
+        // Avvia Nuova Sessione Paziente Standard
+        function startSession() {
             if (!selectedPatientId) return;
-            const dataCorrente = new Date().toLocaleString('it-IT');
-            const sessionRef = push(ref(db, `pazienti/${selectedPatientId}/sessioni`));
+            var dataCorrente = new Date().toLocaleString('it-IT');
+            var sessionRef = database.ref('pazienti/' + selectedPatientId + '/sessioni').push();
             activeSessionId = sessionRef.key;
 
-            set(sessionRef, { data: dataCorrente, timestamp: Date.now() }).then(() => {
+            sessionRef.set({ data: dataCorrente, timestamp: Date.now() }).then(function() {
                 document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
                 document.getElementById('exercise-overlay').classList.add('hidden');
                 document.getElementById('btn-session').classList.add('hidden');
@@ -397,40 +402,72 @@
                 localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
                 localStorage.setItem('neurocenter_active_session_id', activeSessionId);
             });
-        };
+        }
 
-        window.stopSession = function() {
+        // NUOVA FUNZIONE: Avvia Sessione Libera senza tracciamento
+        function startFreeSession() {
+            isFreeSession = true;
+            selectedPatientId = null;
+            activeSessionId = "FREE_SESSION_" + Date.now();
+            
+            // Aggiorna l'interfaccia simulando un paziente attivo
+            document.getElementById('patient-placeholder').value = '';
+            document.getElementById('patient-placeholder').classList.add('hidden');
+            document.getElementById('patient-details').classList.remove('hidden');
+            
+            document.getElementById('current-p-name').innerText = "Sessione Libera / Valutazione Rapida";
+            document.getElementById('current-p-meta').innerText = "Nessun dato verrà memorizzato sul cloud.";
+            document.getElementById('notes-container').classList.add('hidden');
+            document.getElementById('logs-container').classList.add('hidden');
+            
+            document.getElementById('btn-session').classList.add('hidden');
+            document.getElementById('btn-stop-session').classList.remove('hidden');
+            
+            // Sblocca gli esercizi
+            document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
+            document.getElementById('exercise-overlay').classList.add('hidden');
+            
+            localStorage.setItem('neurocenter_active_patient_id', 'FREE');
+            localStorage.setItem('neurocenter_active_session_id', activeSessionId);
+        }
+
+        // Termina Sessione (Sia standard che libera)
+        function stopSession() {
             document.getElementById('exercises-container').classList.add('opacity-30', 'pointer-events-none');
             document.getElementById('exercise-overlay').classList.remove('hidden');
             document.getElementById('btn-session').classList.remove('hidden');
             document.getElementById('btn-stop-session').classList.add('hidden');
+            
             activeSessionId = null;
             localStorage.removeItem('neurocenter_active_patient_id');
             localStorage.removeItem('neurocenter_active_session_id');
-        };
 
-        // Esportazione funzioni di interfaccia al contesto globale window per i vecchi pulsanti HTML inline
-        window.toggleAddPatientForm = function() {
+            if (isFreeSession) {
+                isFreeSession = false;
+                document.getElementById('patient-details').classList.add('hidden');
+                document.getElementById('patient-placeholder').classList.remove('hidden');
+            }
+        }
+
+        function toggleAddPatientForm() {
             document.getElementById('add-patient-form').classList.toggle('hidden');
-        };
+        }
 
-        window.viewPatient = viewPatient;
-
-        window.launchExercise = function(url) {
+        function launchExercise(url) {
             if (!activeSessionId) { 
-                alert("Avvia la sessione prima."); 
+                alert("Attiva prima una sessione (paziente o libera)."); 
                 return; 
             }
             window.open(url, '_blank');
-        };
+        }
 
-        // Ascolto messaggi di log dagli esercizi figli aperti in altre schede
+        // Ascolto messaggi dai test (salva sul DB solo se non è una sessione libera)
         window.addEventListener('message', function(event) {
             if (event.data && event.data.type === 'NEUROCENTER_SAVE_DATA') {
-                const pId = localStorage.getItem('neurocenter_active_patient_id');
-                const sId = localStorage.getItem('neurocenter_active_session_id');
-                if (pId && sId) {
-                    set(ref(db, `pazienti/${pId}/sessioni/${sId}/esercizi/${event.data.exerciseName}`), {
+                var pId = localStorage.getItem('neurocenter_active_patient_id');
+                var sId = localStorage.getItem('neurocenter_active_session_id');
+                if (pId && sId && pId !== 'FREE') {
+                    database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + event.data.exerciseName).set({
                         metrics: event.data.metrics,
                         summary: event.data.summary,
                         timestamp: Date.now()
