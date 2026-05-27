@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piattaforma Multimodale di Neuro-Potenziamento</title>
-    <script src="https://cdn.tailwindcss.com\"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -135,8 +135,16 @@
 
     <script>
         // CONFIGURAZIONE FIREBASE
+        // NOTA: Per il corretto funzionamento di Firebase, inserire le credenziali del proprio progetto.
+        // Se il database ha regole di scrittura pubbliche, apiKey e projectId fittizi possono essere sufficienti per l'inizializzazione.
         const firebaseConfig = {
-            databaseURL: "https://neurocenter-a3093-default-rtdb.europe-west1.firebasedatabase.app"
+            apiKey: "AIzaSyDummyKeyForInitialization_PleaseReplace",
+            authDomain: "neurocenter-a3093.firebaseapp.com",
+            databaseURL: "https://neurocenter-a3093-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "neurocenter-a3093",
+            storageBucket: "neurocenter-a3093.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abc123def456ghi789jkl"
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
@@ -369,6 +377,8 @@
                         timestamp: Date.now()
                     }).then(() => {
                         hasSavedViaPostMessage = true;
+                    }).catch((error) => {
+                        console.error("Errore nel salvataggio via postMessage:", error);
                     });
                 }
             });
@@ -425,6 +435,10 @@
                     `;
                     container.appendChild(div);
                 }
+            }, (error) => {
+                console.error("Errore caricamento pazienti:", error);
+                const container = document.getElementById('patients-list');
+                container.innerHTML = `<div class="text-rose-500 text-sm italic p-4 text-center">Errore di connessione a Firebase: ${error.message}</div>`;
             });
         }
 
@@ -441,6 +455,9 @@
                 document.getElementById('new-p-surname').value = '';
                 document.getElementById('new-p-notes').value = '';
                 document.getElementById('add-patient-form').classList.add('hidden');
+            }).catch((error) => {
+                console.error("Errore salvataggio paziente:", error);
+                alert("Errore durante il salvataggio: " + error.message + "\nVerifica che le regole di scrittura del tuo database Firebase siano abilitate per l'accesso pubblico o che la configurazione sia corretta.");
             });
         }
 
@@ -457,6 +474,9 @@
                 dataEstesa: new Date().toLocaleDateString('it-IT')
             }).then(() => {
                 checkActiveSessionState();
+            }).catch((error) => {
+                console.error("Errore creazione sessione:", error);
+                alert("Errore nell'avvio della sessione sul database: " + error.message);
             });
         }
 
@@ -537,6 +557,8 @@
                 database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
                     summary: "Eseguito alle " + timestampCorrente + " (In-App)",
                     timestamp: Date.now()
+                }).catch((error) => {
+                    console.error("Errore fallback salvataggio esercizio:", error);
                 });
             }
             
