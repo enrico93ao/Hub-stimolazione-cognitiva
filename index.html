@@ -137,22 +137,25 @@
         // CONFIGURAZIONE FIREBASE
         // IMPORTANTE: Sostituisci questi valori segnaposto con le reali credenziali web del tuo progetto Firebase.
         const firebaseConfig = {
-            apiKey: "AIzaSyDummyKeyForInitialization_PleaseReplace",
-            authDomain: "neurocenter-a3093.firebaseapp.com",
-            databaseURL: "https://neurocenter-a3093-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "neurocenter-a3093",
-            storageBucket: "neurocenter-a3093.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abc123def456ghi789jkl"
+            apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
+            authDomain: "neurocenter-stimolazione.firebaseapp.com",
+            databaseURL: "https://neurocenter-stimolazione-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "neurocenter-stimolazione",
+            storageBucket: "neurocenter-stimolazione.firebasestorage.app",
+            messagingSenderId: "259470306894",
+            appId: "1:259470306894:web:1ba11544fff8e2e4089d1f",
+            measurementId: "G-R7W54NWQ4G"
         };
-        
+
         let database;
+
         try {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
+            console.log("Firebase inizializzato correttamente");
         } catch (error) {
             console.error("Errore inizializzazione Firebase:", error);
-            alert("Errore nell'inizializzazione dell'app Firebase. Verifica la configurazione 'firebaseConfig' in index.html.");
+            alert("Errore Firebase: " + error.message);
         }
 
         // ARRAY COMPLETO DEGLI ESERCIZI (Vecchi + 10 Nuovi Moduli)
@@ -454,38 +457,54 @@
         }
 
         // AGGIUNTA PAZIENTE SU FIREBASE
-        function saveNewPatient() {
+        async function saveNewPatient() {
             const nome = document.getElementById('new-p-name').value.trim();
             const cognome = document.getElementById('new-p-surname').value.trim();
             const note = document.getElementById('new-p-notes').value.trim();
-            if(!nome || !cognome) { alert("Nome e cognome obbligatori."); return; }
+            const saveButton = document.querySelector('button[onclick="saveNewPatient()"]');
 
-            if (!database) {
-                alert("Errore: Il database Firebase non è inizializzato. Controlla il codice sorgente.");
+            if(!nome || !cognome) { 
+                alert("Nome e cognome obbligatori."); 
+                return; 
+            }
+
+            if (!firebase.apps.length || !database) {
+                alert("Errore: Firebase non è inizializzato. Controlla la configurazione firebaseConfig.");
                 return;
             }
 
-            // Salvataggio diretto ed esclusivo su Firebase
-            const newRef = database.ref('pazienti').push();
-            newRef.set({ 
-                nome, 
-                cognome, 
-                note, 
-                dataCreazione: Date.now() 
-            })
-            .then(() => {
+            try {
+                if (saveButton) {
+                    saveButton.disabled = true;
+                    saveButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Salvataggio in corso...';
+                }
+
+                const newRef = database.ref('pazienti').push();
+                await newRef.set({ 
+                    nome: nome, 
+                    cognome: cognome, 
+                    note: note, 
+                    dataCreazione: Date.now() 
+                });
+
                 document.getElementById('new-p-name').value = '';
                 document.getElementById('new-p-surname').value = '';
                 document.getElementById('new-p-notes').value = '';
                 document.getElementById('add-patient-form').classList.add('hidden');
-                alert("Paziente salvato con successo nel database Firebase Cloud!");
-            })
-            .catch((error) => {
+
+                alert("Paziente salvato correttamente nel database Firebase.");
+            } catch (error) {
                 console.error("Errore salvataggio Firebase:", error);
-                alert("ERRORE DI SCRITTURA SU FIREBASE:\n" + error.message + 
-                      "\n\nVerifica:\n1. Di aver inserito le credenziali reali in 'firebaseConfig' (apiKey, appId, ecc.)." + 
-                      "\n2. Che le regole del database (Rules) nella console Firebase consentano l'accesso in scrittura pubblica (es. '.write': true).");
-            });
+                alert(
+                    "ERRORE DI SCRITTURA SU FIREBASE:\n" + error.message +
+                    "\n\nControlla soprattutto le Rules del Realtime Database: devono consentire la scrittura."
+                );
+            } finally {
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = 'Conferma e Salva in Cloud';
+                }
+            }
         }
 
         // SELEZIONE PAZIENTE E CREAZIONE SESSIONE CLINICA
