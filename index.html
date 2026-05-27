@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piattaforma Multimodale di Neuro-Potenziamento</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com\"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -17,513 +17,519 @@
             background-image: radial-gradient(circle at 50% 30%, rgba(79, 70, 229, 0.08) 0%, rgba(15, 23, 42, 0) 60%);
         }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.5); border-radius: 3px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="bg-slate-950 bg-gradient-radial min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col justify-between selection:bg-indigo-500/30 selection:text-indigo-200">
+<body class="h-full bg-slate-950 text-slate-100 overflow-hidden bg-gradient-radial antialiased">
 
-    <div id="exercise-frame-container" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col">
-        <div class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex justify-between items-center shadow-xl">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-gauge-high text-indigo-400"></i>
-                <span id="active-exercise-title" class="text-xs uppercase font-bold tracking-wider text-slate-300">Modulo di Stimolazione Attivo</span>
-            </div>
-            <button onclick="closeExerciseInline()" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-4 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-rectangle-xmark"></i> Termina ed Esci
-            </button>
-        </div>
-        <iframe id="exercise-iframe" class="w-full flex-1 border-none bg-slate-950"></iframe>
-    </div>
-
-    <div id="login-screen" class="flex-1 flex flex-col items-center justify-center my-auto relative z-10">
-        <div class="w-full max-w-md bg-slate-900/40 border border-slate-800/80 rounded-2xl p-8 backdrop-blur-md shadow-2xl">
+    <div id="setup-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4 custom-scroll overflow-y-auto">
+        <div class="w-full max-w-xl bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl">
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/5 text-indigo-400 border border-indigo-500/30 mb-4 shadow-xl">
-                    <i class="fa-solid fa-shield-halved text-2xl"></i>
+                <div class="inline-flex p-4 bg-indigo-500/10 rounded-2xl text-indigo-400 mb-4 border border-indigo-500/20">
+                    <i class="fa-solid fa-brain text-4xl"></i>
                 </div>
-                <h2 class="text-2xl font-bold tracking-tight text-slate-100">Accesso Riservato</h2>
-                <p class="text-xs text-slate-400 mt-2">Inserisci le credenziali per accedere all'area clinica</p>
+                <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">NeuroCenter Hub</h1>
+                <p class="text-slate-400">Seleziona un profilo clinico attivo o avvia una sessione libera</p>
             </div>
 
-            <form id="login-form" class="space-y-5" onsubmit="handleLogin(event)">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Utente</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                            <i class="fa-solid fa-user text-sm"></i>
-                        </div>
-                        <input type="text" id="username" required autocomplete="off" class="block w-full pl-10 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-sm" placeholder="Nome utente">
-                    </div>
+            <div class="space-y-4 mb-6">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Pazienti Attivi</label>
+                <div id="patients-list" class="grid grid-cols-1 gap-3 max-h-52 overflow-y-auto pr-1 custom-scroll">
+                    <div class="text-slate-500 text-sm italic p-4 text-center">Caricamento profili in corso...</div>
                 </div>
+            </div>
 
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                            <i class="fa-solid fa-key text-sm"></i>
-                        </div>
-                        <input type="password" id="password" required class="block w-full pl-10 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-sm" placeholder="••••••••">
-                    </div>
-                </div>
-
-                <div id="login-error" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2.5 rounded-lg flex items-center gap-2">
-                    <i class="fa-solid fa-circle-exclamation"></i> Credenziali non valide. Riprova.
-                </div>
-
-                <button type="submit" class="w-full py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
-                    Autentica <i class="fa-solid fa-arrow-right text-xs"></i>
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-800">
+                <button onclick="startFreeSession()" class="flex-1 py-3.5 px-5 bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-2xl font-semibold text-sm transition text-slate-200">
+                    <i class="fa-solid fa-bolt mr-2 text-amber-400"></i>Sessione Libera (Senza Salvataggio)
                 </button>
-            </form>
+                <button onclick="toggleAddPatientForm()" class="py-3.5 px-5 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-semibold text-sm transition text-white">
+                    <i class="fa-solid fa-user-plus mr-2"></i>Nuovo Paziente
+                </button>
+            </div>
+
+            <div id="add-patient-form" class="hidden mt-6 pt-6 border-t border-slate-800 space-y-4">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Registra Anagrafica Paziente</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="new-p-name" placeholder="Nome" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
+                    <input type="text" id="new-p-surname" placeholder="Cognome" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
+                </div>
+                <input type="text" id="new-p-notes" placeholder="Note cliniche o diagnostiche (opzionale)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
+                <button onclick="saveNewPatient()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-wider transition text-white">
+                    Conferma e Salva in Cloud
+                </button>
+            </div>
         </div>
     </div>
 
-    <div id="main-hub" class="hidden flex-1 flex flex-col justify-between w-full relative z-10">
-        
-        <div class="flex justify-between items-center border-b border-slate-900 pb-4 mb-10">
-            <div class="flex items-center gap-3 text-left">
-                <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-lg">
-                    <i class="fa-solid fa-brain text-xl"></i>
-                </div>
+    <div class="h-full flex flex-col">
+        <header class="bg-slate-900/50 backdrop-blur border-b border-slate-900 px-6 py-4 flex items-center justify-between z-10">
+            <div class="flex items-center gap-3">
+                <span class="p-2 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/10">
+                    <i class="fa-solid fa-circle-nodes text-xl"></i>
+                </span>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight text-slate-100">Hub Clinico v3</h1>
-                    <p class="text-[11px] text-slate-500">Neuro-Potenziamento Multimodale</p>
+                    <h2 class="text-md font-bold text-white">Piattaforma di Neuro-Potenziamento</h2>
+                    <p id="active-patient-badge" class="text-xs text-slate-400 font-medium"></p>
                 </div>
             </div>
-            
-            <button onclick="returnToHomeReal()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors">
-                <i class="fa-solid fa-house text-indigo-400 text-[11px]"></i> Ritorna alla Home
+            <button onclick="returnToHomeReal()" class="py-2 px-4 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold rounded-xl transition flex items-center gap-2">
+                <i class="fa-solid fa-right-from-bracket text-rose-400"></i> Cambia Paziente
             </button>
-        </div>
+        </header>
 
-        <div class="grid lg:grid-cols-3 gap-6 mb-12">
-            <div class="lg:col-span-1 bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 backdrop-blur-sm flex flex-col justify-between">
+        <div class="flex-1 flex overflow-hidden">
+            <aside class="w-64 bg-slate-900/20 border-r border-slate-900 p-6 flex flex-col gap-6 hidden md:block">
                 <div>
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                            <i class="fa-solid fa-users text-indigo-400"></i> Anagrafica Pazienti
-                        </h2>
-                        <button onclick="toggleAddPatientForm()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-md font-medium flex items-center gap-1 transition-colors">
-                            <i class="fa-solid fa-plus text-[10px]"></i> Nuovo
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Aree Cognitive</h3>
+                    <nav class="space-y-1" id="filter-menu">
+                        <button onclick="filterExercises('all')" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition flex items-center justify-between bg-indigo-600 text-white font-bold" data-filter="all">
+                            <span>Tutti i moduli</span>
+                            <span class="text-xs bg-indigo-700 px-2 py-0.5 rounded-md" id="count-all">0</span>
                         </button>
-                    </div>
-
-                    <div id="add-patient-form" class="hidden bg-slate-950/60 border border-slate-800 rounded-lg p-3 mb-4 space-y-3">
-                        <input type="text" id="p-nome" placeholder="Cognome e Nome" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                        <input type="date" id="p-nascita" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                        <textarea id="p-note" placeholder="Note cliniche / Diagnosi..." rows="2" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
-                        <div class="flex justify-end gap-2 text-[11px]">
-                            <button type="button" onclick="toggleAddPatientForm()" class="text-slate-400 hover:text-slate-200 px-2 py-1">Annulla</button>
-                            <button type="button" onclick="savePatient()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded font-medium">Salva</button>
-                        </div>
-                    </div>
-
-                    <div id="patients-list" class="space-y-1.5 max-h-[190px] overflow-y-auto custom-scroll pr-1 text-xs text-slate-400">
-                        In attesa di autenticazione...
-                    </div>
+                        <button onclick="filterExercises('memoria')" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-900 hover:text-white transition flex items-center justify-between" data-filter="memoria">
+                            <span>Memoria</span>
+                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400" id="count-memoria">0</span>
+                        </button>
+                        <button onclick="filterExercises('attenzione')" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-900 hover:text-white transition flex items-center justify-between" data-filter="attenzione">
+                            <span>Attenzione</span>
+                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400" id="count-attenzione">0</span>
+                        </button>
+                        <button onclick="filterExercises('funzioni-esecutive')" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-900 hover:text-white transition flex items-center justify-between" data-filter="funzioni-esecutive">
+                            <span>Funzioni Esecutive</span>
+                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400" id="count-funzioni-esecutive">0</span>
+                        </button>
+                        <button onclick="filterExercises('linguaggio')" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-900 hover:text-white transition flex items-center justify-between" data-filter="linguaggio">
+                            <span>Linguaggio</span>
+                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400" id="count-linguaggio">0</span>
+                        </button>
+                        <button onclick="filterExercises('logica')" class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-900 hover:text-white transition flex items-center justify-between" data-filter="logica">
+                            <span>Logica e Ragionamento</span>
+                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400" id="count-logica">0</span>
+                        </button>
+                    </nav>
                 </div>
-            </div>
+            </aside>
 
-            <div class="lg:col-span-2 bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 backdrop-blur-sm">
-                
-                <div id="patient-placeholder" class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-6">
-                    <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-700"></i>
-                    <p class="text-xs max-w-md mb-4">Seleziona un paziente per consultare la cartella clinica oppure avvia una sessione estemporanea senza salvare dati.</p>
-                    <button onclick="startFreeSession()" class="bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/40 text-indigo-300 hover:text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Avvia Sessione Libera
-                    </button>
-                </div>
-
-                <div id="patient-details" class="hidden h-full flex flex-col justify-between">
-                    <div>
-                        <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 pb-3 mb-4">
-                            <div>
-                                <h3 id="current-p-name" class="font-bold text-base text-slate-100">---</h3>
-                                <p id="current-p-meta" class="text-xs text-indigo-400 mt-0.5">---</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="btn-session" onclick="startSession()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2">
-                                    <i class="fa-solid fa-play text-[10px]"></i> Avvia Nuova Sessione
-                                </button>
-                                <button id="btn-stop-session" onclick="stopSession()" class="hidden bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2">
-                                    <i class="fa-solid fa-square text-[10px]"></i> Termina Sessione
-                                </button>
-                            </div>
-                        </div>
-                        <div id="notes-container" class="mb-4">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Inquadramento Diagnostico / Note</span>
-                            <p id="current-p-notes" class="text-xs text-slate-300 bg-slate-950/40 border border-slate-800/60 p-2.5 rounded-lg italic">---</p>
-                        </div>
+            <main class="flex-1 p-6 overflow-y-auto custom-scroll">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="exercise-grid">
                     </div>
-
-                    <div id="logs-container">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-2">Storico Allenamenti</span>
-                        <div id="sessions-log" class="space-y-2 max-h-[120px] overflow-y-auto custom-scroll pr-1 text-xs">
-                            Nessuna sessione registrata.
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </main>
         </div>
-
-        <div id="exercises-container" class="opacity-30 pointer-events-none transition-opacity duration-300 relative">
-            <div id="exercise-overlay" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] z-20 flex items-center justify-center text-center px-4">
-                <div class="bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-xl text-xs text-slate-400 font-medium shadow-2xl flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-indigo-400"></i> Seleziona un paziente o attiva la "Sessione Libera" per sbloccare la somministrazione dei test.
-                </div>
-            </div>
-
-            <div class="space-y-16">
-                <div>
-                    <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-6">
-                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-bolt text-sm"></i>
-                        </div>
-                        <h2 class="text-xl font-bold tracking-tight text-slate-200">Attenzione, Inibizione della Risposta & Controllo Esecutivo</h2>
-                    </div>
-                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-amber-500/30 hover:bg-slate-900/40">
-                            <div>
-                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-amber-400 transition-colors">Il Cifrario Vigilante</h3>
-                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Attenzione selettiva sostenuta, codifica simbolica rapida e monitoraggio visivo continuo.</p>
-                            </div>
-                            <button onclick="launchExerciseInline('il_cifrario_vigilante.html', 'Il Cifrario Vigilante')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600 text-amber-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
-                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
-                            </button>
-                        </div>
-                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-amber-500/30 hover:bg-slate-900/40">
-                            <div>
-                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-amber-400 transition-colors">Test di Stroop</h3>
-                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Inibizione della risposta automatica, flessibilità cognitiva e controllo dell'interferenza interferenziale.</p>
-                            </div>
-                            <button onclick="launchExerciseInline('app_di_stimolazione_cognitiva_test_di_stroop.html', 'Test di Stroop')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600 text-amber-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
-                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
-                            </button>
-                        </div>
-                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-amber-500/30 hover:bg-slate-900/40">
-                            <div>
-                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-amber-400 transition-colors">Il Semaforo delle Parole</h3>
-                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Paradigma Go/No-Go verbale. Controllo inibitorio dello stimolo semantico-cromatico incongruente.</p>
-                            </div>
-                            <button onclick="launchExerciseInline('il_semaforo_delle_parole.html', 'Il Semaforo delle Parole')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600 text-amber-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
-                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-6">
-                        <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-shuffle text-sm"></i>
-                        </div>
-                        <h2 class="text-xl font-bold tracking-tight text-slate-200">Flessibilità Cognitiva & Memoria di Lavoro</h2>
-                    </div>
-                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-rose-500/30 hover:bg-slate-900/40">
-                            <div>
-                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-rose-400 transition-colors">TMT-B Percorso Alternato</h3>
-                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Digitalizzazione del Trail Making Test Parte B. Valutazione dello shifting sequenziale Numero-Lettera.</p>
-                            </div>
-                            <button onclick="launchExerciseInline('percorso_alternato_tmt_b.html', 'TMT-B Percorso Alternato')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
-                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
-                            </button>
-                        </div>
-                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-emerald-500/30 hover:bg-slate-900/40">
-                            <div>
-                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-emerald-400 transition-colors">N-Back Semantico</h3>
-                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Monitoraggio attivo e updating continuo della memoria di lavoro.</p>
-                            </div>
-                            <button onclick="launchExerciseInline('n_back_semantico.html', 'N-Back Semantico')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
-                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
-                            </button>
-                        </div>
-                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/40">
-                            <div>
-                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-indigo-400 transition-colors">Incastri Logici Pro</h3>
-                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Problem-solving strutturato basato su spostamenti vincolati (Torre di Hanoi).</p>
-                            </div>
-                            <button onclick="launchExerciseInline('incastri_logici.html', 'Incastri Logici Pro')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
-                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
-                            </button>
-                        </div>
-                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/40">
-                            <div>
-                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-indigo-400 transition-colors">Lo Specchio Rotante</h3>
-                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Esercizio di rotazione mentale e coordinazione visuo-spaziale su matrici geometriche riflesse.</p>
-                            </div>
-                            <button onclick="launchExerciseInline('specchio_rotante_stimolazione_cognitiva.html', 'Lo Specchio Rotante')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
-                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <div class="mt-20 pt-6 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-3 text-[11px] text-slate-600 tracking-wide uppercase">
-        <div>Sistema Centrale di Riabilitazione Neuropsicologica • Firebase CRM</div>
-        <div>
-            <button onclick="returnToHomeReal()" class="hover:text-indigo-400 font-semibold transition-colors">
-                <i class="fa-solid fa-house mr-1"></i> Ritorna alla Home principale
+    <div id="exercise-frame-container" class="fixed inset-0 bg-slate-950 z-40 hidden flex flex-col">
+        <div class="bg-slate-900/90 backdrop-blur px-4 py-2 flex items-center justify-between border-b border-slate-850">
+            <div class="flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="current-exercise-title-bar" class="text-xs font-bold text-slate-300 uppercase tracking-wider">Esercizio Attivo</span>
+            </div>
+            <button onclick="closeActiveExercise()" class="py-1.5 px-3.5 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-xmark"></i> Termina Sessione
             </button>
         </div>
+        <iframe id="exercise-iframe" src="about:blank" class="w-full flex-1 border-none bg-white"></iframe>
     </div>
 
     <script>
-        var selectedPatientId = null;
-        var activeSessionId = null;
-        var isFreeSession = false;
-        var globalPatientsData = {};
-        var database = null;
-        
-        var currentActiveExerciseName = "";
-        var hasSavedViaPostMessage = false;
-
+        // CONFIGURAZIONE FIREBASE
         const firebaseConfig = {
-            apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
-            authDomain: "neurocenter-stimolazione.firebaseapp.com",
-            databaseURL: "https://neurocenter-stimolazione-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "neurocenter-stimolazione",
-            storageBucket: "neurocenter-stimolazione.firebasestorage.app",
-            messagingSenderId: "259470306894",
-            appId: "1:259470306894:web:1ba11544fff8e2e4089d1f",
-            measurementId: "G-R7W54NWQ4G"
+            databaseURL: "https://neurocenter-a3093-default-rtdb.europe-west1.firebasedatabase.app"
         };
-
         firebase.initializeApp(firebaseConfig);
-        database = firebase.database();
+        const database = firebase.database();
 
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'NEUROCENTER_SAVE_DATA') {
-                console.log("Dati ricevuti dal modulo di stimolazione:", event.data);
-                
-                var pId = selectedPatientId || localStorage.getItem('neurocenter_active_patient_id');
-                var sId = activeSessionId || localStorage.getItem('neurocenter_active_session_id');
-                
-                if (pId && sId && pId !== 'FREE') {
-                    var rawName = event.data.exerciseName || currentActiveExerciseName || "Esercizio";
-                    var cleanDbKey = rawName.replace(/ /g, '_');
-                    
-                    database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
-                        summary: event.data.summary,
-                        data: event.data.data,
+        // ARRAY COMPLETO DEGLI ESERCIZI (Vecchi + 10 Nuovi Moduli)
+        const exercises = [
+            {
+                id: "il_cifrario_vigilante",
+                title: "Il Cifrario Vigilante",
+                path: "il_cifrario_vigilante.html",
+                category: "attenzione",
+                icon: "fa-shield-halved",
+                color: "from-blue-500 to-indigo-600",
+                description: "Valutazione e potenziamento dell'attenzione selettiva e della velocità di cifratura simbolica."
+            },
+            {
+                id: "specchio_rotante_stimolazione_cognitiva",
+                title: "Specchio Rotante",
+                path: "specchio_rotante_stimolazione_cognitiva.html",
+                category: "funzioni-esecutive",
+                icon: "fa-vector-square",
+                color: "from-purple-500 to-indigo-600",
+                description: "Esercizio avanzato basato sulla rotazione mentale e sulla coordinazione visuo-spaziale dei pattern."
+            },
+            {
+                id: "esercizio_di_stimolazione_multilivello",
+                title: "Stimolazione Multilivello",
+                path: "esercizio_di_stimolazione_multilivello.html",
+                category: "attenzione",
+                icon: "fa-layer-group",
+                color: "from-orange-500 to-red-600",
+                description: "Task di inibizione della risposta motoria automatica basato su tempi di reazione differenziati."
+            },
+            {
+                id: "esercizio_di_stimolazione_cognitiva_coerenza_linguistica",
+                title: "Coerenza Linguistica",
+                path: "esercizio_di_stimolazione_cognitiva_coerenza_linguistica.html",
+                category: "linguaggio",
+                icon: "fa-language",
+                color: "from-emerald-500 to-teal-600",
+                description: "Esercizio basato sulle associazioni cromatico-testuali per lo stimolo della semantica e della fluidità verbale."
+            },
+            {
+                id: "una_tira_l_altra_con_feedback_sonori",
+                title: "Una Tira l'Altra",
+                path: "una_tira_l_altra_con_feedback_sonori.html",
+                category: "linguaggio",
+                icon: "fa-comments",
+                color: "from-pink-500 to-rose-600",
+                description: "Incatonamento logico e completamento lessicale con l'ausilio di stimoli sonori strutturati."
+            },
+            {
+                id: "esercizio_di_inibizione_cognitiva",
+                title: "Il Gioco del Contrario",
+                path: "esercizio_di_inibizione_cognitiva.html",
+                category: "funzioni-esecutive",
+                icon: "fa-shuffle",
+                color: "from-amber-500 to-orange-600",
+                description: "Esercizio mirato al blocco dell'impulso motorio primario e alla flessibilità cognitiva comportamentale."
+            },
+            {
+                id: "stimolazione_cognitiva_audio",
+                title: "Audio-Riconoscimento",
+                path: "stimolazione_cognitiva_audio.html",
+                category: "attenzione",
+                icon: "fa-volume-high",
+                color: "from-cyan-500 to-blue-600",
+                description: "Associazione multimodale guidata da sintesi vocale e discriminazione di target fonetici complessi."
+            },
+            {
+                id: "mente_attiva",
+                title: "Mente Attiva - Orientamento",
+                path: "mente_attiva.html",
+                category: "logica",
+                icon: "fa-calendar-check",
+                color: "from-violet-500 to-purple-600",
+                description: "Modulo di riabilitazione focalizzato sull'orientamento spazio-temporale e sul calcolo calendariale."
+            },
+            {
+                id: "riconoscimento_silhouette_pro",
+                title: "Silhouette Pro",
+                path: "riconoscimento_silhouette_pro.html",
+                category: "attenzione",
+                icon: "fa-eye-slash",
+                color: "from-teal-500 to-cyan-600",
+                description: "Discriminazione e chiusura visiva di stimoli geometrici degradati o presentati in controluce."
+            },
+            {
+                id: "alfabeto_mentale",
+                title: "Alfabeto Mentale",
+                path: "alfabeto_mentale.html",
+                category: "funzioni-esecutive",
+                icon: "fa-arrow-down-a-z",
+                color: "from-indigo-500 to-blue-600",
+                description: "Ordinamento sequenziale interno e manipolazione attiva di stringhe alfanumeriche complesse."
+            },
+            {
+                id: "il_vocabolario_strampalato",
+                title: "Il Vocabolario Strampalato",
+                path: "il_vocabolario_strampalato.html",
+                category: "linguaggio",
+                icon: "fa-book-open",
+                color: "from-fuchsia-500 to-pink-600",
+                description: "Anagrammi e problem-solving lessicale basati su un database esteso di 500 lemmi della lingua italiana."
+            },
+            {
+                id: "esercizio_di_memoria_visiva_1",
+                title: "Memoria Visiva",
+                path: "esercizio_di_memoria_visiva (1).html",
+                category: "memoria",
+                icon: "fa-image",
+                color: "from-rose-500 to-red-600",
+                description: "Codifica e rievocazione differita di dettagli visuo-spaziali e scenari fotografici strutturati."
+            },
+            // --- ECCO I 10 NUOVI MODULI RECENTEMENTE CARICATI ---
+            {
+                id: "il_percorso_nel_giardino",
+                title: "Il Percorso nel Giardino",
+                path: "il_percorso_nel_giardino.html",
+                category: "memoria",
+                icon: "fa-seedling",
+                color: "from-emerald-500 to-teal-600",
+                description: "Allenamento intensivo della memoria di lavoro visuo-spaziale attraverso la rievocazione di sequenze di percorsi."
+            },
+            {
+                id: "training_cognitivo_avanzato",
+                title: "NeuroBoost v2 - Training Avanzato",
+                path: "training_cognitivo_avanzato.html",
+                category: "funzioni-esecutive",
+                icon: "fa-rocket",
+                color: "from-indigo-500 to-purple-600",
+                description: "Protocollo integrato multilivello per il potenziamento globale con supporto lavagna/canvas interattivo."
+            },
+            {
+                id: "relazioni_logiche",
+                title: "Relazioni Logiche - Pro Edition",
+                path: "relazioni_logiche.html",
+                category: "logica",
+                icon: "fa-project-diagram",
+                color: "from-blue-500 to-indigo-600",
+                description: "Analisi clinica delle analogie e del ragionamento deduttivo astratto mediante matrici di relazione."
+            },
+            {
+                id: "esercizio_di_stimolazione_cognitiva",
+                title: "Task Combinato Memoria-Calcolo",
+                path: "esercizio_di_stimolazione_cognitiva.html",
+                category: "memoria",
+                icon: "fa-calculator",
+                color: "from-amber-500 to-orange-600",
+                description: "Rievocazione verbale a breve termine associata a un compito interferente di calcolo matematico distrittore."
+            },
+            {
+                id: "training_cognitivo_pro",
+                title: "NeuroFlow - Training Pro",
+                path: "training_cognitivo_pro.html",
+                category: "funzioni-esecutive",
+                icon: "fa-wave-square",
+                color: "from-cyan-500 to-blue-600",
+                description: "Flusso di lavoro adattivo per il monitoraggio continuo dei passaggi logici e della flessibilità cognitiva."
+            },
+            {
+                id: "eco_sequenza",
+                title: "Eco-Sequenza Neuro-Training",
+                path: "eco_sequenza.html",
+                category: "attenzione",
+                icon: "fa-volume-up",
+                color: "from-violet-500 to-fuchsia-600",
+                description: "Stimolazione e monitoraggio della memoria sequenziale attraverso canali di feedback uditivi e visivi completi."
+            },
+            {
+                id: "n_back_semantico",
+                title: "N-back Semantico & Classico",
+                path: "n_back_semantico.html",
+                category: "memoria",
+                icon: "fa-infinity",
+                color: "from-pink-500 to-rose-600",
+                description: "Task avanzato di working memory basato sul monitoraggio, aggiornamento e categorizzazione semantica continua."
+            },
+            {
+                id: "app_di_stimolazione_cognitiva_test_di_stroop",
+                title: "Test di Stroop - Attenzione",
+                path: "app_di_stimolazione_cognitiva_test_di_stroop.html",
+                category: "attenzione",
+                icon: "fa-eye",
+                color: "from-red-500 to-orange-600",
+                description: "Paradigma clinico classico per la valutazione dell'inibizione della risposta automatica e della velocità di elaborazione."
+            },
+            {
+                id: "intruso_semantico",
+                title: "Intruso Semantico",
+                path: "intruso_semantico.html",
+                category: "linguaggio",
+                icon: "fa-font",
+                color: "from-teal-500 to-emerald-600",
+                description: "Esercizio di stimolazione dell'area del linguaggio, categorizzazione concettuale e selezione semantica."
+            },
+            {
+                id: "training_memoria_visiva",
+                title: "Visual Memory Trainer Pro",
+                path: "training_memoria_visiva.html",
+                category: "memoria",
+                icon: "fa-images",
+                color: "from-sky-500 to-indigo-600",
+                description: "Allenamento intensivo per la ritenzione a breve termine di stimoli visivi complessi e combinazioni alfanumeriche."
+            }
+        ];
+
+        let currentActiveExerciseName = "";
+        let hasSavedViaPostMessage = false;
+
+        // INIZIALIZZAZIONE APPLICAZIONE
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPatientsList();
+            renderExercisesGrid('all');
+            calculateCounters();
+            checkActiveSessionState();
+
+            // Ascolto eventi postMessage provenienti dagli iFrame interni (per salvataggi complessi)
+            window.addEventListener('message', function(event) {
+                var pId = localStorage.getItem('neurocenter_active_patient_id');
+                var sId = localStorage.getItem('neurocenter_active_session_id');
+                if(!pId || !sId || pId === 'FREE') return;
+
+                if (event.data && event.data.type === 'NEURO_SESSION_DATA') {
+                    var cleanKey = currentActiveExerciseName.replace(/ /g, '_');
+                    database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanKey).set({
+                        summary: event.data.summary || "Completato",
+                        score: event.data.score || null,
+                        accuracy: event.data.accuracy || null,
                         timestamp: Date.now()
-                    }).then(function() {
-                        console.log("Statistiche caricate con successo nel database.");
+                    }).then(() => {
                         hasSavedViaPostMessage = true;
-                    }).catch(function(err) {
-                        console.error("Errore durante il caricamento dati:", err);
                     });
                 }
-            }
+            });
         });
 
-        function handleLogin(event) {
-            event.preventDefault();
-            var userIn = document.getElementById('username').value;
-            var passIn = document.getElementById('password').value;
-            if (userIn === "Enrico" && passIn === "1234") {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-hub').classList.remove('hidden');
-                document.getElementById('patients-list').innerHTML = 'Connessione al Cloud...';
-                initDatabaseListeners();
+        // CALCOLO CONTATORI LATERALI
+        function calculateCounters() {
+            document.getElementById('count-all').innerText = exercises.length;
+            ['memoria', 'attenzione', 'funzioni-esecutive', 'linguaggio', 'logica'].forEach(cat => {
+                const count = exercises.filter(e => e.category === cat).length;
+                const badge = document.getElementById('count-' + cat);
+                if(badge) badge.innerText = count;
+            });
+        }
+
+        // CONTROLlo STATO SESSIONE
+        function checkActiveSessionState() {
+            var activePatientId = localStorage.getItem('neurocenter_active_patient_id');
+            var activePatientName = localStorage.getItem('neurocenter_active_patient_name');
+            if (activePatientId) {
+                document.getElementById('setup-screen').classList.add('hidden');
+                document.getElementById('active-patient-badge').innerHTML = `<i class="fa-solid fa-user-check text-indigo-400 mr-1.5"></i> Profilo in uso: <strong class="text-white">${activePatientName}</strong>`;
             } else {
-                document.getElementById('login-error').classList.remove('hidden');
-                document.getElementById('password').value = '';
+                document.getElementById('setup-screen').classList.remove('hidden');
             }
         }
 
-        function initDatabaseListeners() {
-            database.ref('pazienti').on('value', function(snapshot) {
-                globalPatientsData = snapshot.val() || {};
-                renderPatientsList(globalPatientsData);
-                if (selectedPatientId) viewPatient(selectedPatientId);
-            }, function(error) {
-                console.error("Errore Firebase:", error);
-                document.getElementById('patients-list').innerHTML = 
-                    '<p class="text-rose-400 font-medium py-1">Errore Database.</p>';
-            });
-        }
-
-        function renderPatientsList(patients) {
-            var listContainer = document.getElementById('patients-list');
-            listContainer.innerHTML = '';
-            var keys = Object.keys(patients);
-            
-            if (keys.length === 0) { 
-                listContainer.innerHTML = '<p class="italic text-slate-600 py-2">Nessun paziente inserito.</p>'; 
-                return; 
-            }
-            
-            keys.forEach(function(key) {
-                var btn = document.createElement('button');
-                btn.type = "button";
-                btn.className = "w-full text-left px-3 py-2 rounded-lg border transition-all flex items-center justify-between " + 
-                                (selectedPatientId === key ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-200" : "bg-slate-950/40 border-slate-800/80 hover:bg-slate-900/50 text-slate-300");
-                btn.onclick = function() { viewPatient(key); };
-                btn.innerHTML = '<span><i class="fa-regular fa-user text-[10px] mr-1.5 opacity-60"></i> ' + patients[key].nome + '</span><i class="fa-solid fa-chevron-right text-[9px] opacity-40"></i>';
-                listContainer.appendChild(btn);
-            });
-        }
-
-        function viewPatient(id) {
-            isFreeSession = false;
-            selectedPatientId = id;
-            var p = globalPatientsData[id];
-            renderPatientsList(globalPatientsData);
-            
-            document.getElementById('patient-placeholder').classList.add('hidden');
-            document.getElementById('patient-details').classList.remove('hidden');
-            document.getElementById('notes-container').classList.remove('hidden');
-            document.getElementById('logs-container').classList.remove('hidden');
-            
-            document.getElementById('current-p-name').innerText = p.nome;
-            document.getElementById('current-p-notes').innerText = p.note;
-
-            var nascita = new Date(p.nascita);
-            var eta = new Date().getFullYear() - nascita.getFullYear();
-            document.getElementById('current-p-meta').innerText = "Nato il: " + nascita.toLocaleDateString('it-IT') + " (" + eta + " anni)";
-
-            loadPatientSessions(id);
-        }
-
-        function loadPatientSessions(patientId) {
-            var container = document.getElementById('sessions-log');
-            database.ref('pazienti/' + patientId + '/sessioni').on('value', function(snapshot) {
-                var data = snapshot.val();
+        // CARICAMENTO LISTA PAZIENTI DA FIREBASE
+        function loadPatientsList() {
+            database.ref('pazienti').on('value', (snapshot) => {
+                const container = document.getElementById('patients-list');
                 container.innerHTML = '';
-                if (!data) { 
-                    container.innerHTML = '<p class="italic text-slate-600">Nessun allenamento salvato.</p>'; 
-                    return; 
+                const data = snapshot.val();
+                if (!data) {
+                    container.innerHTML = '<div class="text-slate-500 text-sm italic p-4 text-center">Nessun paziente registrato nel database cloud.</div>';
+                    return;
                 }
-                Object.keys(data).reverse().forEach(function(sId) {
-                    var s = data[sId];
-                    var div = document.createElement('div');
-                    div.className = "bg-slate-950/40 border border-slate-800/80 rounded-lg p-2.5 mb-1.5";
-                    var exHtml = '';
-                    
-                    if (s.esercizi) {
-                        Object.keys(s.esercizi).forEach(function(ex) {
-                            exHtml += '<div class="text-[11px] bg-slate-900/50 border border-slate-800/50 px-2 py-1 rounded flex items-center justify-between mt-1 text-slate-300">' +
-                                '<span class="text-indigo-300"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> ' + ex.replace(/_/g, ' ') + '</span>' +
-                                '<span class="text-slate-400 text-[10px] font-mono">' + (s.esercizi[ex].summary || 'Eseguito') + '</span>' +
-                            '</div>';
-                        });
-                    } else { 
-                        exHtml = '<p class="text-[11px] text-slate-600 italic">Nessun esercizio completato.</p>'; 
-                    }
-                    div.innerHTML = '<div class="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-900 pb-1"><span><i class="fa-regular fa-calendar-check mr-1 text-indigo-400"></i> Sessione: ' + s.data + '</span></div>' + exHtml;
+                for (let id in data) {
+                    const p = data[id];
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-3.5 bg-slate-950/60 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/40 rounded-xl cursor-pointer transition group";
+                    div.onclick = () => selectPatient(id, `${p.nome} ${p.cognome}`);
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-8 bg-slate-800 group-hover:bg-indigo-600 rounded-lg flex items-center justify-center text-xs font-bold text-slate-300 group-hover:text-white transition">
+                                ${p.nome.charAt(0)}${p.cognome.charAt(0)}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-200 group-hover:text-white transition">${p.nome} ${p.cognome}</h4>
+                                <p class="text-xs text-slate-500">${p.note || 'Nessuna nota aggiuntiva'}</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-indigo-400 text-xs transition"></i>
+                    `;
                     container.appendChild(div);
-                });
+                }
             });
         }
 
-        function savePatient() {
-            var nomeInput = document.getElementById('p-nome');
-            var nascitaInput = document.getElementById('p-nascita');
-            var noteInput = document.getElementById('p-note');
+        // AGGIUNTA PAZIENTE
+        function saveNewPatient() {
+            const nome = document.getElementById('new-p-name').value.trim();
+            const cognome = document.getElementById('new-p-surname').value.trim();
+            const note = document.getElementById('new-p-notes').value.trim();
+            if(!nome || !cognome) { alert("Nome e cognome obbligatori."); return; }
 
-            var nome = nomeInput.value.trim();
-            var nascita = nascitaInput.value;
-            var note = noteInput.value.trim();
-            
-            if (!nome || !nascita) { 
-                alert("Compilare Cognome, Nome e Data di Nascita."); 
-                return; 
-            }
-
-            var pacchettoDati = {
-                nome: nome,
-                nascita: nascita,
-                note: note || "Nessuna nota iniziale."
-            };
-
-            database.ref('pazienti').push(pacchettoDati)
-                .then(function() {
-                    nomeInput.value = '';
-                    nascitaInput.value = '';
-                    noteInput.value = '';
-                    toggleAddPatientForm();
-                })
-                .catch(function(err) {
-                    alert("Errore di scrittura: " + err.message);
-                });
+            const newRef = database.ref('pazienti').push();
+            newRef.set({ nome, cognome, note, dataCreazione: Date.now() }).then(() => {
+                document.getElementById('new-p-name').value = '';
+                document.getElementById('new-p-surname').value = '';
+                document.getElementById('new-p-notes').value = '';
+                document.getElementById('add-patient-form').classList.add('hidden');
+            });
         }
 
-        function startSession() {
-            if (!selectedPatientId) return;
-            var dataCorrente = new Date().toLocaleString('it-IT');
-            var sessionRef = database.ref('pazienti/' + selectedPatientId + '/sessioni').push();
-            activeSessionId = sessionRef.key;
-
-            sessionRef.set({ data: dataCorrente, timestamp: Date.now() }).then(function() {
-                localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
-                localStorage.setItem('neurocenter_active_session_id', activeSessionId);
-                
-                document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
-                document.getElementById('exercise-overlay').classList.add('hidden');
-                document.getElementById('btn-session').classList.add('hidden');
-                document.getElementById('btn-stop-session').classList.remove('hidden');
+        // SELEZIONE PAZIENTE E CREAZIONE SESSIONE CLINICA
+        function selectPatient(id, fullname) {
+            localStorage.setItem('neurocenter_active_patient_id', id);
+            localStorage.setItem('neurocenter_active_patient_name', fullname);
+            var sessionRandomId = 'SESS_' + Date.now();
+            localStorage.setItem('neurocenter_active_session_id', sessionRandomId);
+            
+            // Inizializza il record sessione su Firebase
+            database.ref('pazienti/' + id + '/sessioni/' + sessionRandomId).set({
+                timestampInizio: Date.now(),
+                dataEstesa: new Date().toLocaleDateString('it-IT')
+            }).then(() => {
+                checkActiveSessionState();
             });
         }
 
         function startFreeSession() {
-            isFreeSession = true;
-            selectedPatientId = "FREE";
-            activeSessionId = "FREE_SESSION_" + Date.now();
-            
-            localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
-            localStorage.setItem('neurocenter_active_session_id', activeSessionId);
-
-            document.getElementById('patient-placeholder').classList.add('hidden');
-            document.getElementById('patient-details').classList.remove('hidden');
-            document.getElementById('notes-container').classList.add('hidden');
-            document.getElementById('logs-container').classList.add('hidden');
-            
-            document.getElementById('current-p-name').innerText = "Sessione Estemporanea Libera";
-            document.getElementById('current-p-meta').innerText = "Nessun salvataggio dati abilitato sul cloud.";
-            
-            document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
-            document.getElementById('exercise-overlay').classList.add('hidden');
-            document.getElementById('btn-session').classList.add('hidden');
-            document.getElementById('btn-stop-session').classList.remove('hidden');
+            localStorage.setItem('neurocenter_active_patient_id', 'FREE');
+            localStorage.setItem('neurocenter_active_patient_name', "Sessione Libera");
+            localStorage.setItem('neurocenter_active_session_id', 'FREE');
+            checkActiveSessionState();
         }
 
-        function stopSession() {
-            activeSessionId = null;
-            selectedPatientId = null;
-            localStorage.removeItem('neurocenter_active_patient_id');
-            localStorage.removeItem('neurocenter_active_session_id');
+        // RENDERING GENERAZIONE CARD ESERCIZI
+        function renderExercisesGrid(filter) {
+            const grid = document.getElementById('exercise-grid');
+            grid.innerHTML = '';
             
-            document.getElementById('exercises-container').classList.add('opacity-30', 'pointer-events-none');
-            document.getElementById('exercise-overlay').classList.remove('hidden');
-            document.getElementById('btn-session').classList.remove('hidden');
-            document.getElementById('btn-stop-session').classList.add('hidden');
-            document.getElementById('patient-placeholder').classList.remove('hidden');
-            document.getElementById('patient-details').classList.add('hidden');
+            const filtered = filter === 'all' ? exercises : exercises.filter(e => e.category === filter);
+            
+            filtered.forEach(ex => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/60 backdrop-blur-md border border-slate-900 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-800 hover:bg-slate-900/80 transition-all duration-300 group shadow-lg";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="p-3 bg-gradient-to-br ${ex.color} rounded-xl text-white shadow-md group-hover:scale-105 transition-transform duration-300">
+                                <i class="fa-solid ${ex.icon} text-lg w-5 text-center"></i>
+                            </span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-800 text-slate-400 rounded-md border border-slate-700/50">
+                                ${ex.category.replace('-', ' ')}
+                            </span>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-100 group-hover:text-indigo-400 transition-colors mb-1.5">${ex.title}</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">${ex.description}</p>
+                    </div>
+                    <button onclick="launchExercise('${ex.title}', '${ex.path}')" class="w-full py-2.5 bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play text-[10px]"></i> Avvia Modulo
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
         }
 
-        function launchExerciseInline(url, title) {
-            if (!activeSessionId) { 
-                alert("Attiva prima una sessione (paziente o libera)."); 
-                return; 
-            }
-            
+        // GESTIONE FILTRI NAVBAR
+        function filterExercises(category) {
+            renderExercisesGrid(category);
+            const buttons = document.querySelectorAll('#filter-menu button');
+            buttons.forEach(btn => {
+                if(btn.getAttribute('data-filter') === category) {
+                    btn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition flex items-center justify-between bg-indigo-600 text-white font-bold";
+                    var badge = btn.querySelector('span:nth-child(2)');
+                    if(badge) { badge.className = "text-xs bg-indigo-700 px-2 py-0.5 rounded-md"; }
+                } else {
+                    btn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-900 hover:text-white transition flex items-center justify-between";
+                    var badge = btn.querySelector('span:nth-child(2)');
+                    if(badge) { badge.className = "text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400"; }
+                }
+            });
+        }
+
+        // AVVIO ED ESECUZIONE MODULO CLINICO IN IFRAME
+        function launchExercise(title, path) {
             currentActiveExerciseName = title;
             hasSavedViaPostMessage = false;
-            
-            document.getElementById('active-exercise-title').innerText = "Modulo Attivo: " + title;
-            document.getElementById('exercise-iframe').src = url;
+            document.getElementById('current-exercise-title-bar').innerText = title;
             document.getElementById('exercise-frame-container').classList.remove('hidden');
+            document.getElementById('exercise-iframe').src = path;
         }
 
-        function closeExerciseInline() {
+        // CHIUSURA IFRAME E COMPILAZIONE FALLBACK MARCATURA
+        function closeActiveExercise() {
             var pId = localStorage.getItem('neurocenter_active_patient_id');
             var sId = localStorage.getItem('neurocenter_active_session_id');
             
+            // Fallback: Se l'esercizio non ha trasmesso i dati via postMessage, scrive la marcatura standard temporale
             if (pId && sId && pId !== 'FREE' && currentActiveExerciseName !== "" && !hasSavedViaPostMessage) {
                 var cleanDbKey = currentActiveExerciseName.replace(/ /g, '_');
                 var timestampCorrente = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
@@ -547,6 +553,7 @@
         function returnToHomeReal() {
             localStorage.removeItem('neurocenter_active_patient_id');
             localStorage.removeItem('neurocenter_active_session_id');
+            localStorage.removeItem('neurocenter_active_patient_name');
             window.location.reload();
         }
     </script>
