@@ -26,6 +26,7 @@
 </head>
 <body class="min-h-full bg-stone-50 text-slate-800 flex flex-col antialiased custom-scroll">
 
+    <!-- HEADER ISTITUZIONALE -->
     <header class="bg-white border-b border-stone-200 sticky top-0 z-40 shadow-sm px-6 py-4">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -50,6 +51,7 @@
         </div>
     </header>
 
+    <!-- BADGE NOTIFICA STATO CLINICO -->
     <div id="status-bar" class="bg-amber-50 border-b border-amber-200 px-6 py-2 text-center text-xs text-amber-800 font-medium hidden">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <span id="active-patient-badge"><i class="fa-solid fa-user-check mr-1.5"></i> Profilo attivo</span>
@@ -59,6 +61,7 @@
         </div>
     </div>
 
+    <!-- HERO SECTION PRINCIPALE -->
     <section class="bg-white pt-12 pb-20 relative overflow-hidden">
         <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
@@ -73,7 +76,7 @@
                 </div>
 
                 <p class="text-slate-600 text-sm md:text-base max-w-xl leading-relaxed">
-                    La <strong>stimolazione cognitiva</strong> aiuta a mantenere attive le funzioni mentali, migliorare la memoria, l'attenzione, il linguaggio e la qualità della via.
+                    La <strong>stimolazione cognitiva</strong> aiuta a mantenere attive le funzioni mentali, migliorare la memoria, l'attenzione, il linguaggio e la qualità della vita.
                 </p>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-stone-100">
@@ -97,8 +100,8 @@
             </div>
 
             <div class="lg:col-span-5 relative flex justify-center">
-                <div class="w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden border-4 border-stone-100 bg-stone-100 shadow-xl">
-                    <img src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=600" alt="Sostegno Cognitivo" class="w-full h-full object-cover filter grayscale-[20%]">
+                <div class="w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden border-4 border-stone-100 bg-stone-100 shadow-xl relative">
+                    <img src="hero_elderly_image.jpg" alt="Sostegno Cognitivo - Neurocenter" class="w-full h-full object-cover">
                 </div>
                 
                 <div class="absolute bottom-4 right-0 md:-right-4 max-w-xs bg-neuro-blue text-white p-5 rounded-2xl shadow-2xl border border-white/10 space-y-2">
@@ -115,44 +118,52 @@
         </div>
     </section>
 
-    <section id="sezione-accessi" class="bg-neuro-blue text-white py-12 px-6 relative">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- SEZIONE DEI DUE ACCESSI STRUTTURATA FEDELMENTE DAI FILE JPG -->
+    <section id="sezione-accessi" class="bg-neuro-blue py-16 px-6 relative">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            <div class="bg-white text-slate-800 p-6 rounded-2xl shadow-lg border border-stone-200 flex flex-col justify-between space-y-4">
-                <div class="flex items-start gap-4">
-                    <div class="p-3 bg-stone-100 rounded-xl text-neuro-blue text-2xl"><i class="fa-solid fa-hands-holding-child"></i></div>
+            <!-- BOX PER IL PAZIENTE -->
+            <div class="bg-[#fcfaf7] text-slate-800 p-8 rounded-[2rem] shadow-xl border border-stone-200 flex flex-col md:flex-row items-center md:items-start gap-6 relative overflow-hidden bg-[url('https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=400&q=20')] bg-no-repeat bg-right bg-contain mix-blend-multiply">
+                <div class="w-28 h-28 flex-shrink-0 flex items-center justify-center">
+                    <img src="patient_card.jpg" alt="Icona Paziente" class="w-full h-full object-contain">
+                </div>
+                <div class="flex-1 space-y-4 z-10">
                     <div>
-                        <h3 class="text-lg font-black uppercase tracking-tight text-neuro-blue">Per il Paziente</h3>
-                        <p class="text-xs font-semibold text-neuro-gold mt-0.5">Allena la tua mente, migliora il tuo benessere.</p>
-                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+                        <h3 class="text-2xl font-extrabold uppercase tracking-tight text-neuro-blue">Per il Paziente</h3>
+                        <p class="text-sm font-semibold text-[#b8860b] mt-1">Allena la tua mente, migliora il tuo benessere.</p>
+                        <p class="text-xs text-slate-700 mt-3 leading-relaxed font-medium">
                             Esercizi personalizzati e percorsi mirati per potenziare memoria, attenzione, linguaggio e funzioni esecutive in modo semplice e coinvolgente.
                         </p>
                     </div>
+                    <button onclick="startFreeSession()" class="px-8 py-3 bg-neuro-blue text-white hover:bg-slate-800 font-bold text-xs uppercase tracking-widest rounded-xl transition flex items-center gap-3 shadow-md">
+                        <i class="fa-solid fa-user text-sm"></i> Area Paziente <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
                 </div>
-                <button onclick="startFreeSession()" class="w-full sm:w-auto self-start px-6 py-2.5 bg-neuro-blue text-white hover:bg-slate-800 font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-user"></i> Area Paziente <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                </button>
             </div>
 
-            <div class="bg-white text-slate-800 p-6 rounded-2xl shadow-lg border border-stone-200 flex flex-col justify-between space-y-4">
-                <div class="flex items-start gap-4">
-                    <div class="p-3 bg-stone-100 rounded-xl text-neuro-blue text-2xl"><i class="fa-solid fa-clipboard-user"></i></div>
+            <!-- BOX PER LO SPECIALISTA -->
+            <div class="bg-[#fcfaf7] text-slate-800 p-8 rounded-[2rem] shadow-xl border border-stone-200 flex flex-col md:flex-row items-center md:items-start gap-6 relative overflow-hidden bg-[url('https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=400&q=20')] bg-no-repeat bg-right bg-contain mix-blend-multiply">
+                <div class="w-28 h-28 flex-shrink-0 flex items-center justify-center">
+                    <img src="specialist_card.jpg" alt="Icona Specialista" class="w-full h-full object-contain">
+                </div>
+                <div class="flex-1 space-y-4 z-10">
                     <div>
-                        <h3 class="text-lg font-black uppercase tracking-tight text-neuro-blue">Per lo Specialista</h3>
-                        <p class="text-xs font-semibold text-neuro-gold mt-0.5">Gestisci i pazienti e monitora i progressi.</p>
-                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+                        <h3 class="text-2xl font-extrabold uppercase tracking-tight text-neuro-blue">Per lo Specialista</h3>
+                        <p class="text-sm font-semibold text-[#b8860b] mt-1">Gestisci i pazienti e monitora i progressi.</p>
+                        <p class="text-xs text-slate-700 mt-3 leading-relaxed font-medium">
                             Piattaforma dedicata per creare percorsi personalizzati, monitorare le sessioni, analizzare i risultati e supportare ogni paziente nel tempo.
                         </p>
                     </div>
+                    <button onclick="openSpecialistDashboard()" class="px-8 py-3 bg-[#b8860b] text-white hover:bg-amber-700 font-bold text-xs uppercase tracking-widest rounded-xl transition flex items-center gap-3 shadow-md">
+                        <i class="fa-solid fa-lock text-sm"></i> Area Specialista <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
                 </div>
-                <button onclick="openSpecialistDashboard()" class="w-full sm:w-auto self-start px-6 py-2.5 bg-neuro-gold text-white hover:bg-amber-700 font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-lock"></i> Area Specialista <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                </button>
             </div>
 
         </div>
     </section>
 
+    <!-- LOGIN SCREEN INTEGRATO -->
     <div id="login-screen" class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 hidden">
         <div class="w-full max-w-md bg-white border border-stone-200 rounded-3xl p-8 shadow-2xl text-slate-800">
             <div class="text-center mb-6">
@@ -170,6 +181,7 @@
         </div>
     </div>
 
+    <!-- AREA DI SETUP CLINICO E DASHBOARD -->
     <section id="dashboard-clinical-area" class="max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 hidden my-8">
         
         <div class="lg:col-span-4 bg-white border border-stone-200 rounded-2xl p-5 shadow-sm space-y-4">
@@ -209,10 +221,12 @@
             </div>
 
             <div id="exercise-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1 custom-scroll">
-                </div>
+                <!-- Generato via JavaScript -->
+            </div>
         </div>
     </section>
 
+    <!-- FOOTER INFORMATIVO COMPLETO -->
     <footer class="bg-neuro-blue text-white pt-10 pb-6 px-6 border-t border-slate-800 mt-auto">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 pb-6 border-b border-white/10">
             <div class="flex items-center gap-3">
@@ -253,6 +267,7 @@
         </div>
     </footer>
 
+    <!-- CONTENITORE IFRAME TASK ATTIVO -->
     <div id="exercise-frame-container" class="fixed inset-0 bg-slate-950 z-50 hidden flex flex-col">
         <div class="bg-slate-900 px-4 py-2 flex items-center justify-between border-b border-slate-800">
             <span id="current-exercise-title-bar" class="text-xs font-bold text-white uppercase tracking-wider">Esercizio Attivo</span>
@@ -263,6 +278,7 @@
         <iframe id="exercise-iframe" src="about:blank" class="w-full flex-1 border-none bg-white"></iframe>
     </div>
 
+    <!-- SCRIPT LOGICA COMPLETA CON TUTTI I 22 ESERCIZI -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
@@ -281,7 +297,6 @@
             database = firebase.database();
         } catch (e) { console.error("Firebase offline:", e); }
 
-        // TUTTI I 22 MODULI RIPRISTINATI CORRETTAMENTE
         const exercises = [
             { id: "il_cifrario_vigilante", title: "Il Cifrario Vigilante", path: "il_cifrario_vigilante.html", category: "attenzione", icon: "fa-shield-halved", description: "Valutazione e potenziamento dell'attenzione selettiva e della velocità di cifratura simbolica." },
             { id: "specchio_rotante_stimolazione_cognitiva", title: "Specchio Rotante", path: "specchio_rotante_stimolazione_cognitiva.html", category: "funzioni-esecutive", icon: "fa-vector-square", description: "Esercizio avanzato basato sulla rotazione mentale e sulla coordinazione visuo-spaziale dei pattern." },
