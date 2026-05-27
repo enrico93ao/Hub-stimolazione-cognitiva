@@ -35,7 +35,10 @@
             </div>
 
             <div class="space-y-4 mb-6">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Pazienti Attivi</label>
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Pazienti Attivi</label>
+                    <span id="connection-status-badge" class="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-slate-800 text-slate-500">Connessione...</span>
+                </div>
                 <div id="patients-list" class="grid grid-cols-1 gap-3 max-h-52 overflow-y-auto pr-1 custom-scroll">
                     <div class="text-slate-500 text-sm italic p-4 text-center">Caricamento profili in corso...</div>
                 </div>
@@ -58,7 +61,7 @@
                 </div>
                 <input type="text" id="new-p-notes" placeholder="Note cliniche o diagnostiche (opzionale)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
                 <button onclick="saveNewPatient()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-wider transition text-white">
-                    Conferma e Salva in Cloud
+                    Conferma e Salva
                 </button>
             </div>
         </div>
@@ -134,14 +137,17 @@
     </div>
 
     <script>
-        // SERVIZIO DATI CON FALLBACK LOCALE (localStorage)
+        // SERVIZIO DATI CON FALLBACK LOCALE E MONITORAGGIO CONNESSIONE
         const dbService = {
             isFirebaseActive: false,
+            hasLoadedInitialData: false,
             localData: {
                 pazienti: JSON.parse(localStorage.getItem('neurocenter_local_pazienti')) || {}
             },
+            onDataChangeCallback: null,
 
             init() {
+                this.updateUIStatus("Verifica...");
                 try {
                     if (typeof firebase !== 'undefined') {
                         // CONFIGURAZIONE FIREBASE
@@ -156,17 +162,83 @@
                         };
                         firebase.initializeApp(firebaseConfig);
                         this.db = firebase.database();
-                        this.isFirebaseActive = true;
-                        console.log("Firebase collegato con successo.");
+                        
+                        // Ascolta lo stato della connessione Firebase
+                        this.db.ref(".info/connected").on("value", (snap) => {
+                            if (snap.val() === true) {
+                                console.log("Firebase: Connesso al server.");
+                                this.isFirebaseActive = true;
+                                this.updateUIStatus("Cloud Online", "bg-emerald-500/20 text-emerald-400 border border-emerald-500/10");
+                                this.startCloudSync();
+                            } else {
+                                console.warn("Firebase: Connessione in corso o disconnesso...");
+                                // Se non si è mai collegato prima, resta in locale
+                                if (!this.isFirebaseActive) {
+                                    this.updateUIStatus("Offline (Locale)", "bg-amber-500/20 text-amber-400 border border-amber-500/10");
+                                }
+                            }
+                        });
+
+                        // Timeout di sicurezza caricamento iniziale (3 secondi)
+                        // Se Firebase non risponde entro 3 secondi, mostriamo subito i dati locali
+                        setTimeout(() => {
+                            if (!this.hasLoadedInitialData) {
+                                console.warn("Firebase: Timeout caricamento iniziale. Fallback locale.");
+                                this.triggerLocalFallback();
+                            }
+                        }, 3000);
+
                     } else {
                         console.warn("Librerie Firebase non caricate. Uso di localStorage.");
+                        this.triggerLocalFallback();
                     }
                 } catch (e) {
-                    console.error("Errore inizializzazione Firebase, fallback su localStorage:", e);
+                    console.error("Errore inizializzazione Firebase:", e);
+                    this.triggerLocalFallback();
                 }
             },
 
-            // Salva paziente
+            updateUIStatus(text, classes = "bg-slate-800 text-slate-400") {
+                const badge = document.getElementById('connection-status-badge');
+                if (badge) {
+                    badge.innerText = text;
+                    badge.className = "text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider " + classes;
+                }
+            },
+
+            // Forza caricamento dati locali
+            triggerLocalFallback() {
+                this.hasLoadedInitialData = true;
+                this.updateUIStatus("Offline (Locale)", "bg-amber-500/20 text-amber-400 border border-amber-500/10");
+                if (this.onDataChangeCallback) {
+                    this.onDataChangeCallback(this.localData.pazienti);
+                }
+            },
+
+            // Sincronizzazione Cloud
+            startCloudSync() {
+                this.db.ref('pazienti').on('value', (snapshot) => {
+                    this.hasLoadedInitialData = true;
+                    const val = snapshot.val() || {};
+                    // Unisci pazienti locali e remoti
+                    const combined = { ...this.localData.pazienti, ...val };
+                    if (this.onDataChangeCallback) {
+                        this.onDataChangeCallback(combined);
+                    }
+                }, (error) => {
+                    console.error("Firebase: Errore lettura dati:", error);
+                    this.triggerLocalFallback();
+                });
+            },
+
+            // Callback cambiamenti
+            onPatientsChange(callback) {
+                this.onDataChangeCallback = callback;
+                // Mostra subito i dati locali per non far attendere il caricamento
+                callback(this.localData.pazienti);
+            },
+
+            // Salva paziente (con timeout)
             savePatient(nome, cognome, note) {
                 const patientData = {
                     nome,
@@ -177,42 +249,46 @@
                 };
 
                 if (this.isFirebaseActive) {
-                    const newRef = this.db.ref('pazienti').push();
-                    return newRef.set(patientData);
+                    return new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            reject(new Error("Il server database non ha risposto entro i limiti di tempo."));
+                        }, 4000);
+
+                        const newRef = this.db.ref('pazienti').push();
+                        newRef.set(patientData).then(() => {
+                            clearTimeout(timeout);
+                            resolve(newRef.key);
+                        }).catch((err) => {
+                            clearTimeout(timeout);
+                            reject(err);
+                        });
+                    });
                 } else {
                     // Salva in localStorage
                     const localId = 'LOCAL_' + Date.now();
                     this.localData.pazienti[localId] = patientData;
                     localStorage.setItem('neurocenter_local_pazienti', JSON.stringify(this.localData.pazienti));
-                    return Promise.resolve(localId); // Simula successo
+                    return Promise.resolve(localId);
                 }
             },
 
-            // Ascolta cambiamenti dei pazienti
-            onPatientsChange(callback, errorCallback) {
-                if (this.isFirebaseActive) {
-                    this.db.ref('pazienti').on('value', (snapshot) => {
-                        const val = snapshot.val() || {};
-                        // Uniamo i dati di Firebase con quelli locali (per non perdere nulla)
-                        const combined = { ...this.localData.pazienti, ...val };
-                        callback(combined);
-                    }, (error) => {
-                        console.error("Errore Firebase. Tentativo fallback su dati locali:", error);
-                        callback(this.localData.pazienti);
-                        if (errorCallback) errorCallback(error);
-                    });
-                } else {
-                    // Trigger immediato per localStorage
-                    setTimeout(() => {
-                        callback(this.localData.pazienti);
-                    }, 50);
-                }
-            },
-
-            // Inizializza sessione clinica
+            // Inizializza sessione clinica (con timeout)
             createSession(patientId, sessionId, sessionData) {
                 if (this.isFirebaseActive && !patientId.startsWith('LOCAL_')) {
-                    return this.db.ref('pazienti/' + patientId + '/sessioni/' + sessionId).set(sessionData);
+                    return new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            reject(new Error("Timeout inizializzazione sessione."));
+                        }, 4000);
+
+                        this.db.ref('pazienti/' + patientId + '/sessioni/' + sessionId).set(sessionData)
+                        .then(() => {
+                            clearTimeout(timeout);
+                            resolve();
+                        }).catch((err) => {
+                            clearTimeout(timeout);
+                            reject(err);
+                        });
+                    });
                 } else {
                     if (this.localData.pazienti[patientId]) {
                         if (!this.localData.pazienti[patientId].sessioni) {
@@ -228,10 +304,23 @@
                 }
             },
 
-            // Salva dati esercizio
+            // Salva dati esercizio (con timeout)
             saveExerciseResult(patientId, sessionId, exerciseKey, exerciseData) {
                 if (this.isFirebaseActive && !patientId.startsWith('LOCAL_')) {
-                    return this.db.ref('pazienti/' + patientId + '/sessioni/' + sessionId + '/esercizi/' + exerciseKey).set(exerciseData);
+                    return new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            reject(new Error("Timeout salvataggio esercizio."));
+                        }, 4000);
+
+                        this.db.ref('pazienti/' + patientId + '/sessioni/' + sessionId + '/esercizi/' + exerciseKey).set(exerciseData)
+                        .then(() => {
+                            clearTimeout(timeout);
+                            resolve();
+                        }).catch((err) => {
+                            clearTimeout(timeout);
+                            reject(err);
+                        });
+                    });
                 } else {
                     if (this.localData.pazienti[patientId] && 
                         this.localData.pazienti[patientId].sessioni && 
@@ -545,8 +634,6 @@
                     `;
                     container.appendChild(div);
                 }
-            }, (error) => {
-                console.error("Errore caricamento da Firebase:", error);
             });
         }
 
@@ -564,7 +651,7 @@
                 document.getElementById('new-p-notes').value = '';
                 document.getElementById('add-patient-form').classList.add('hidden');
                 
-                // Se Firebase non era attivo, aggiorniamo manualmente la lista (poiché onPatientsChange locale non ha un watcher attivo su Firebase)
+                // Se Firebase non era attivo, aggiorniamo manualmente la lista
                 if (!dbService.isFirebaseActive) {
                     loadPatientsList();
                 }
@@ -573,13 +660,17 @@
             })
             .catch((error) => {
                 console.error("Errore salvataggio:", error);
-                // Tentativo fallback locale in caso di errore di scrittura su Firebase
-                alert("Errore di salvataggio su Cloud: " + error.message + "\nTentativo di salvataggio locale nel browser...");
+                // Tentativo fallback locale in caso di errore di scrittura o timeout su Firebase
+                alert("Salvataggio Cloud non riuscito: " + error.message + "\n\nIl paziente verrà salvato localmente nel browser.");
                 
                 // Forza salvataggio locale
                 const localId = 'LOCAL_' + Date.now();
                 dbService.localData.pazienti[localId] = {
-                    nome, cognome, note, dataCreazione: Date.now(), sessioni: {}
+                    nome,
+                    cognome,
+                    note,
+                    dataCreazione: Date.now(),
+                    sessioni: {}
                 };
                 localStorage.setItem('neurocenter_local_pazienti', JSON.stringify(dbService.localData.pazienti));
                 
