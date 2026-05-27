@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub di Riabilitazione e Neuro-Potenziamento Cognitivo</title>
+    <title>Piattaforma Multimodale di Neuro-Potenziamento</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,589 +19,517 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.5); border-radius: 3px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 0.7); }
     </style>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 overflow-hidden bg-gradient-radial">
+<body class="bg-slate-950 bg-gradient-radial min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col justify-between selection:bg-indigo-500/30 selection:text-indigo-200">
 
-    <div id="main-hub-layout" class="h-full flex flex-col max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-800">
-            <div>
-                <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    <i class="fa-solid fa-brain-circuit mr-2 text-indigo-500"></i>NeuroCenter Portal
-                </h1>
-                <p class="text-xs text-slate-400 mt-1">Sitema di monitoraggio clinico e stimolazione cognitiva multidominio</p>
+    <div id="exercise-frame-container" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col">
+        <div class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex justify-between items-center shadow-xl">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-gauge-high text-indigo-400"></i>
+                <span id="active-exercise-title" class="text-xs uppercase font-bold tracking-wider text-slate-300">Modulo di Stimolazione Attivo</span>
             </div>
-            
-            <div id="patient-status-bar" class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-2xl shadow-xl">
-                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                <div class="text-sm">
-                    <span class="text-slate-500 font-medium text-xs block uppercase tracking-wider">Sessione Attiva</span>
-                    <span id="active-patient-display" class="font-bold text-slate-200">Nessun Paziente Selezionato</span>
-                </div>
-                <button onclick="returnToHomeReal()" id="btn-logout-patient" class="hidden ml-4 p-2 bg-slate-800 hover:bg-rose-950/40 border border-slate-750 text-slate-400 hover:text-rose-400 rounded-xl transition text-xs flex items-center gap-1.5">
-                    <i class="fa-solid fa-right-from-bracket"></i> Chiudi Sessione
-                </button>
-            </div>
-        </header>
-
-        <main class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 pt-6 overflow-hidden min-h-0">
-            
-            <section class="lg:col-span-1 bg-slate-900/40 border border-slate-900 rounded-3xl p-5 flex flex-col overflow-hidden backdrop-blur-md">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">
-                        <i class="fa-solid fa-users-rectangle mr-2 text-purple-400"></i>Anagrafica Pazienti
-                    </h2>
-                    <button onclick="toggleAddPatientForm()" class="text-xs font-semibold px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition shadow-lg flex items-center gap-1">
-                        <i class="fa-solid fa-plus text-[10px]"></i> Nuovo
-                    </button>
-                </div>
-
-                <div id="add-patient-form" class="hidden bg-slate-950 border border-slate-800 p-4 rounded-2xl mb-4 space-y-3">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Codice Identificativo / Nome</label>
-                        <input type="text" id="new-patient-name" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500" placeholder="Es. Paziente_01">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Note Cliniche Esterne</label>
-                        <textarea id="new-patient-notes" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 h-16 resize-none" placeholder="Es. Deficit attenzionale post-stroke..."></textarea>
-                    </div>
-                    <button onclick="savePatientToFirebase()" class="w-full text-xs font-bold py-2 bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-slate-700 rounded-xl transition">
-                        Inserisci nel Database
-                    </button>
-                </div>
-
-                <div id="patients-list-container" class="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1">
-                    <div class="text-center p-6 text-xs text-slate-500 italic">Caricamento anagrafiche in corso...</div>
-                </div>
-
-                <div class="mt-4 pt-3 border-t border-slate-800/60">
-                    <button onclick="selectPatient('FREE', 'Allenamento Libero (Nessun Salvataggio)')" class="w-full text-xs font-bold py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-300 rounded-xl transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-bolt text-amber-500"></i> Avvia in Modalità Libera
-                    </button>
-                </div>
-            </section>
-
-            <section id="exercises-hub-section" class="lg:col-span-3 overflow-y-auto custom-scroll pr-1 pb-6 space-y-8 pointer-events-none opacity-40 transition-all duration-300">
-                
-                <div class="space-y-3">
-                    <h3 class="text-xs font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
-                        <span class="w-1.5 h-3 bg-indigo-500 rounded-full"></span> Area 1: Attenzione, Inibizione della Risposta & Controllo Esecutivo
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-indigo-400 transition">Il Cifrario Vigilante</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Attenzione sostenuta visiva, associazione simbolica guidata e codifica rapida su matrici strutturate.</p>
-                            </div>
-                            <button onclick="launchExercise('Il Cifrario Vigilante', 'cifrario_vigilante.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-indigo-950/30 border border-slate-850 group-hover:border-indigo-900 rounded-xl text-slate-300 group-hover:text-indigo-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-indigo-400 transition">Test di Stroop Classico</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Valutazione e potenziamento dell'inibizione cognitiva automatica e suscettibilità all'interferenza cromatico-lessicale.</p>
-                            </div>
-                            <button onclick="launchExercise('Test di Stroop Classico', 'app_di_stimolazione_cognitiva_test_di_stroop.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-indigo-950/30 border border-slate-850 group-hover:border-indigo-900 rounded-xl text-slate-300 group-hover:text-indigo-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-indigo-400 transition">Il Semaforo delle Parole</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Controllo esecutivo motorio e cognitivo tramite paradigma strutturato Go/No-Go verbale e cromatico.</p>
-                            </div>
-                            <button onclick="launchExercise('Il Semaforo delle Parole', 'il_semaforo_delle_parole.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-indigo-950/30 border border-slate-850 group-hover:border-indigo-900 rounded-xl text-slate-300 group-hover:text-indigo-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-indigo-400 transition">Stimolazione Multilivello</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Inseguimento ed esplorazione visiva rapida di forme geometriche target alternate a barre di disturbo.</p>
-                            </div>
-                            <button onclick="launchExercise('Stimolazione Multilivello', 'esercizio_di_stimolazione_multilivello.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-indigo-950/30 border border-slate-850 group-hover:border-indigo-900 rounded-xl text-slate-300 group-hover:text-indigo-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-indigo-400 transition">Il Gioco del Contrario</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Inibizione dell'impulso di risposta primario automatico ed elaborazione logica invertita.</p>
-                            </div>
-                            <button onclick="launchExercise('Il Gioco del Contrario', 'esercizio_di_inibizione_cognitiva.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-indigo-950/30 border border-slate-850 group-hover:border-indigo-900 rounded-xl text-slate-300 group-hover:text-indigo-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-indigo-400 transition">Coerenza Linguistica</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Task attenzionale di accoppiamento e coerenza semantico-cromatica multilivello ad alta precisione.</p>
-                            </div>
-                            <button onclick="launchExercise('Coerenza Linguistica', 'esercizio_di_stimolazione_cognitiva_coerenza_linguistica.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-indigo-950/30 border border-slate-850 group-hover:border-indigo-900 rounded-xl text-slate-300 group-hover:text-indigo-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <h3 class="text-xs font-black uppercase tracking-widest text-purple-400 flex items-center gap-2">
-                        <span class="w-1.5 h-3 bg-purple-500 rounded-full"></span> Area 2: Memoria di Lavoro, Flessibilità & Ragionamento Logico
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-purple-400 transition">TMT-B Percorso Alternato</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Set-shifting alternato ed alta flessibilità esecutivo-attenzionale basata sul classico Trail Making Test Parte B.</p>
-                            </div>
-                            <button onclick="launchExercise('TMT-B Percorso Alternato', 'percorso_alternato_tmt_b.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-purple-950/30 border border-slate-850 group-hover:border-purple-900 rounded-xl text-slate-300 group-hover:text-purple-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-purple-400 transition">Doppio Binario</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Valutazione delle capacità di multitasking simultaneo, split-attention e monitoraggio continuo di stringhe verbali.</p>
-                            </div>
-                            <button onclick="launchExercise('Doppio Binario', 'doppio_binario.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-purple-950/30 border border-slate-850 group-hover:border-purple-900 rounded-xl text-slate-300 group-hover:text-purple-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-purple-400 transition">Incastri Logici Pro</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Problem-solving strutturato, ordinamento geometrico sequenziale e abilità costruttivo-spaziali avanzate.</p>
-                            </div>
-                            <button onclick="launchExercise('Incastri Logici Pro', 'incastri_logici.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-purple-950/30 border border-slate-850 group-hover:border-purple-900 rounded-xl text-slate-300 group-hover:text-purple-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-purple-400 transition">N-Back Semantico e Classico</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Task di updating e monitoraggio continuo in working memory a carico dell'esecutivo centrale fonologico e semantico.</p>
-                            </div>
-                            <button onclick="launchExercise('N-Back Semantico', 'n_back_semantico.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-purple-950/30 border border-slate-850 group-hover:border-purple-900 rounded-xl text-slate-300 group-hover:text-purple-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-purple-400 transition">Alfabeto Mentale</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Manipolazione attiva e riordinamento seriale interno (ordine alfabetico) di stringhe verbali in memoria temporanea.</p>
-                            </div>
-                            <button onclick="launchExercise('Alfabeto Mentale', 'alfabeto_mentale.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-purple-950/30 border border-slate-850 group-hover:border-purple-900 rounded-xl text-slate-300 group-hover:text-purple-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-purple-400 transition">Relazioni Logiche</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Analisi delle analogie verbali, inferenze semantiche strutturate e categorizzazione concettuale.</p>
-                            </div>
-                            <button onclick="launchExercise('Relazioni Logiche', 'relazioni_logiche.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-purple-950/30 border border-slate-850 group-hover:border-purple-900 rounded-xl text-slate-300 group-hover:text-purple-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <h3 class="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2">
-                        <span class="w-1.5 h-3 bg-emerald-500 rounded-full"></span> Area 3: Linguaggio & Competenze Semantico-Lessicali
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-emerald-400 transition">Intruso Semantico</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Ricerca ed estrapolazione logica basata su nodi semantici e categorie concettuali di appartenenza.</p>
-                            </div>
-                            <button onclick="launchExercise('Intruso Semantico', 'intruso_semantico.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-emerald-950/30 border border-slate-850 group-hover:border-emerald-900 rounded-xl text-slate-300 group-hover:text-emerald-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-emerald-400 transition">Riordina la Frase</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Pianificazione logica sintattica e strutturazione sequenziale dell'eloquio scritto.</p>
-                            </div>
-                            <button onclick="launchExercise('Riordina la Frase', 'riordina_la_frase.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-emerald-950/30 border border-slate-850 group-hover:border-emerald-900 rounded-xl text-slate-300 group-hover:text-emerald-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-emerald-400 transition">Una Tira l'Altra</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Fluidità lessicale concatenata ad ancoraggio guidato con supporto e feedback di contorno acustico.</p>
-                            </div>
-                            <button onclick="launchExercise('Una Tira l\'Altra', 'una_tira_l_altra_con_feedback_sonori.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-emerald-950/30 border border-slate-850 group-hover:border-emerald-900 rounded-xl text-slate-300 group-hover:text-emerald-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-emerald-400 transition">Il Vocabolario Strampalato</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Risoluzione di anagrammi complessi per l'allenamento del recupero lessicale e ortografico dinamico.</p>
-                            </div>
-                            <button onclick="launchExercise('Il Vocabolario Strampalato', 'il_vocabolario_strampalato.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-emerald-950/30 border border-slate-850 group-hover:border-emerald-900 rounded-xl text-slate-300 group-hover:text-emerald-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <h3 class="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2">
-                        <span class="w-1.5 h-3 bg-amber-500 rounded-full"></span> Area 4: Orientamento, Gnosie & Memoria Visuo-Spaziale
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-amber-400 transition">Il Percorso nel Giardino</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Orientamento topografico, pianificazione spaziale e ritenzione procedurale sequenziale immediata.</p>
-                            </div>
-                            <button onclick="launchExercise('Il Percorso nel Giardino', 'il_percorso_nel_giardino.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-amber-950/30 border border-slate-850 group-hover:border-amber-900 rounded-xl text-slate-300 group-hover:text-amber-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-amber-400 transition">Numeri Nascosti</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Ricerca visiva selettiva in condizioni di affollamento (visual crowding) e rievocazione spaziale.</p>
-                            </div>
-                            <button onclick="launchExercise('Numeri Nascosti', 'numeri_nascosti.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-amber-950/30 border border-slate-850 group-hover:border-amber-900 rounded-xl text-slate-300 group-hover:text-amber-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-amber-400 transition">Riconoscimento Silhouette Pro</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Valutazione delle agnosie visive d'oggetto, costanza percettiva della forma e abilità di allineamento.</p>
-                            </div>
-                            <button onclick="launchExercise('Riconoscimento Silhouette Pro', 'riconoscimento_silhouette_pro.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-amber-950/30 border border-slate-850 group-hover:border-amber-900 rounded-xl text-slate-300 group-hover:text-amber-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-amber-400 transition">Mente Attiva - Orientamento</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Ancoraggio ecologico temporale interattivo basato su ordinamento logico di giorni, mesi e stagioni.</p>
-                            </div>
-                            <button onclick="launchExercise('Mente Attiva Orientamento', 'mente_attiva.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-amber-950/30 border border-slate-850 group-hover:border-amber-900 rounded-xl text-slate-300 group-hover:text-amber-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <h3 class="text-xs font-black uppercase tracking-widest text-pink-400 flex items-center gap-2">
-                        <span class="w-1.5 h-3 bg-pink-500 rounded-full"></span> Area 5: Protocolli Multidominio & Compiti Cross-Modali
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition">NeuroBoost v2 (Advanced)</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Protocollo intensivo adattivo integrato ad alta complessità esecutiva dotato di canvas di grafomotricità libero.</p>
-                            </div>
-                            <button onclick="launchExercise('NeuroBoost v2', 'training_cognitivo_avanzato.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition">Stimolazione Audio e Sintesi</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Memoria fonologica immediata a breve termine basata su categorizzazione verbale intermediata da Text-to-Speech.</p>
-                            </div>
-                            <button onclick="launchExercise('Stimolazione Cognitiva Audio', 'stimolazione_cognitiva_audio.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition">Visual Memory Trainer Pro</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Inseguimento e memoria visuo-spaziale simultanea e differita di pattern alfabetici/numerici misti.</p>
-                            </div>
-                            <button onclick="launchExercise('Visual Memory Trainer Pro', 'training_memoria_visiva.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition">Eco-Sequenza</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Compito di vigilanza continua e Continuous Performance Task agganciato a risposte sequenziali mediate da barra spaziatrice.</p>
-                            </div>
-                            <button onclick="launchExercise('Eco-Sequenza', 'eco_sequenza.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition">Memoria Visiva - Scene</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Fissazione analitica attentiva di scene complesse d'ambiente e rievocazione mediata da questionario strutturato.</p>
-                            </div>
-                            <button onclick="launchExercise('Memoria Visiva Scene', 'esercizio_di_memoria_visiva (1).html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition">NeuroFlow - Training Pro</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Esercizio logico-mnestico combinato e progressivo ad incremento dinamico delle domande.</p>
-                            </div>
-                            <button onclick="launchExercise('NeuroFlow Training Pro', 'training_cognitivo_pro.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition">Memoria e Calcolo Distrattore</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Task integrato di ritenzione pura di liste di parole intervallato da operazioni aritmetiche di disturbo cognitivo.</p>
-                            </div>
-                            <button onclick="launchExercise('Memoria e Calcolo Distrattore', 'esercizio_di_stimolazione_cognitiva.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition text-amber-400"><i class="fa-solid fa-clock-pulse mr-1"></i> Il Tempo Esatto</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Stima temporale prospettica, ritmo interno ed inibizione motoria sincronizzata su feedback visivi oscillanti.</p>
-                            </div>
-                            <button onclick="launchExercise('Il Tempo Esatto', 'il_tempo_esatto.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition text-amber-400"><i class="fa-solid fa-layer-group mr-1"></i> Inibizione e Memoria Pro</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Paradigma di coordinazione esecutiva flessibile con analisi integrata dei tempi di reazione millisecondati.</p>
-                            </div>
-                            <button onclick="launchExercise('Inibizione e Memoria Pro', 'inibizione_e_memoria_di_lavoro.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                        <div class="bg-slate-900/30 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition group flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200 group-hover:text-pink-400 transition text-amber-400"><i class="fa-solid fa-eye-low-vision mr-1"></i> Caccia all'Intruso Visivo</h4>
-                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Discriminazione e scansione visuo-spaziale rapida di texture geometriche su matrici a densità scalabile.</p>
-                            </div>
-                            <button onclick="launchExercise('Caccia all\'Intruso Visivo', 'caccia_all_intruso_visivo.html')" class="mt-3 text-xs w-full py-2 bg-slate-950 group-hover:bg-pink-950/30 border border-slate-850 group-hover:border-pink-900 rounded-xl text-slate-300 group-hover:text-pink-300 font-medium transition flex items-center justify-center gap-1">
-                                Avvia Task <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-            </section>
-        </main>
-    </div>
-
-    <div id="exercise-frame-container" class="hidden fixed inset-0 bg-slate-950 z-50 flex flex-col animate-fade-in">
-        <div class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex justify-between items-center shadow-2xl">
-            <div class="flex items-center gap-3">
-                <span class="px-2.5 py-1 bg-indigo-950 text-indigo-400 border border-indigo-900 text-[10px] font-bold rounded-lg uppercase tracking-wider">In Esecuzione</span>
-                <h3 id="current-exercise-title-bar" class="text-sm font-bold text-slate-200">Esercizio Clinico</h3>
-            </div>
-            <button onclick="closeActiveExercise()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-1.5">
-                <i class="fa-solid fa-circle-xmark"></i> Esci e Salva Sessione
+            <button onclick="closeExerciseInline()" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-4 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-rectangle-xmark"></i> Termina ed Esci
             </button>
         </div>
-        <div class="flex-1 bg-white relative">
-            <iframe id="exercise-iframe" src="about:blank" class="w-full h-full border-none m-0 p-0"></iframe>
+        <iframe id="exercise-iframe" class="w-full flex-1 border-none bg-slate-950"></iframe>
+    </div>
+
+    <div id="login-screen" class="flex-1 flex flex-col items-center justify-center my-auto relative z-10">
+        <div class="w-full max-w-md bg-slate-900/40 border border-slate-800/80 rounded-2xl p-8 backdrop-blur-md shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/5 text-indigo-400 border border-indigo-500/30 mb-4 shadow-xl">
+                    <i class="fa-solid fa-shield-halved text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-100">Accesso Riservato</h2>
+                <p class="text-xs text-slate-400 mt-2">Inserisci le credenziali per accedere all'area clinica</p>
+            </div>
+
+            <form id="login-form" class="space-y-5" onsubmit="handleLogin(event)">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Utente</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-user text-sm"></i>
+                        </div>
+                        <input type="text" id="username" required autocomplete="off" class="block w-full pl-10 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-sm" placeholder="Nome utente">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-key text-sm"></i>
+                        </div>
+                        <input type="password" id="password" required class="block w-full pl-10 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-sm" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div id="login-error" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2.5 rounded-lg flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation"></i> Credenziali non valide. Riprova.
+                </div>
+
+                <button type="submit" class="w-full py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
+                    Autentica <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-hub" class="hidden flex-1 flex flex-col justify-between w-full relative z-10">
+        
+        <div class="flex justify-between items-center border-b border-slate-900 pb-4 mb-10">
+            <div class="flex items-center gap-3 text-left">
+                <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-lg">
+                    <i class="fa-solid fa-brain text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-100">Hub Clinico v3</h1>
+                    <p class="text-[11px] text-slate-500">Neuro-Potenziamento Multimodale</p>
+                </div>
+            </div>
+            
+            <button onclick="returnToHomeReal()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-house text-indigo-400 text-[11px]"></i> Ritorna alla Home
+            </button>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6 mb-12">
+            <div class="lg:col-span-1 bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 backdrop-blur-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-users text-indigo-400"></i> Anagrafica Pazienti
+                        </h2>
+                        <button onclick="toggleAddPatientForm()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-md font-medium flex items-center gap-1 transition-colors">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Nuovo
+                        </button>
+                    </div>
+
+                    <div id="add-patient-form" class="hidden bg-slate-950/60 border border-slate-800 rounded-lg p-3 mb-4 space-y-3">
+                        <input type="text" id="p-nome" placeholder="Cognome e Nome" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <input type="date" id="p-nascita" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <textarea id="p-note" placeholder="Note cliniche / Diagnosi..." rows="2" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+                        <div class="flex justify-end gap-2 text-[11px]">
+                            <button type="button" onclick="toggleAddPatientForm()" class="text-slate-400 hover:text-slate-200 px-2 py-1">Annulla</button>
+                            <button type="button" onclick="savePatient()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded font-medium">Salva</button>
+                        </div>
+                    </div>
+
+                    <div id="patients-list" class="space-y-1.5 max-h-[190px] overflow-y-auto custom-scroll pr-1 text-xs text-slate-400">
+                        In attesa di autenticazione...
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 bg-slate-900/40 border border-slate-800/60 rounded-xl p-5 backdrop-blur-sm">
+                
+                <div id="patient-placeholder" class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-6">
+                    <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-700"></i>
+                    <p class="text-xs max-w-md mb-4">Seleziona un paziente per consultare la cartella clinica oppure avvia una sessione estemporanea senza salvare dati.</p>
+                    <button onclick="startFreeSession()" class="bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/40 text-indigo-300 hover:text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Avvia Sessione Libera
+                    </button>
+                </div>
+
+                <div id="patient-details" class="hidden h-full flex flex-col justify-between">
+                    <div>
+                        <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 pb-3 mb-4">
+                            <div>
+                                <h3 id="current-p-name" class="font-bold text-base text-slate-100">---</h3>
+                                <p id="current-p-meta" class="text-xs text-indigo-400 mt-0.5">---</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="btn-session" onclick="startSession()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-play text-[10px]"></i> Avvia Nuova Sessione
+                                </button>
+                                <button id="btn-stop-session" onclick="stopSession()" class="hidden bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-square text-[10px]"></i> Termina Sessione
+                                </button>
+                            </div>
+                        </div>
+                        <div id="notes-container" class="mb-4">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Inquadramento Diagnostico / Note</span>
+                            <p id="current-p-notes" class="text-xs text-slate-300 bg-slate-950/40 border border-slate-800/60 p-2.5 rounded-lg italic">---</p>
+                        </div>
+                    </div>
+
+                    <div id="logs-container">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-2">Storico Allenamenti</span>
+                        <div id="sessions-log" class="space-y-2 max-h-[120px] overflow-y-auto custom-scroll pr-1 text-xs">
+                            Nessuna sessione registrata.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="exercises-container" class="opacity-30 pointer-events-none transition-opacity duration-300 relative">
+            <div id="exercise-overlay" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] z-20 flex items-center justify-center text-center px-4">
+                <div class="bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-xl text-xs text-slate-400 font-medium shadow-2xl flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-indigo-400"></i> Seleziona un paziente o attiva la "Sessione Libera" per sbloccare la somministrazione dei test.
+                </div>
+            </div>
+
+            <div class="space-y-16">
+                <div>
+                    <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-6">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-bolt text-sm"></i>
+                        </div>
+                        <h2 class="text-xl font-bold tracking-tight text-slate-200">Attenzione, Inibizione della Risposta & Controllo Esecutivo</h2>
+                    </div>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-amber-500/30 hover:bg-slate-900/40">
+                            <div>
+                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-amber-400 transition-colors">Il Cifrario Vigilante</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Attenzione selettiva sostenuta, codifica simbolica rapida e monitoraggio visivo continuo.</p>
+                            </div>
+                            <button onclick="launchExerciseInline('il_cifrario_vigilante.html', 'Il Cifrario Vigilante')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600 text-amber-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
+                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                            </button>
+                        </div>
+                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-amber-500/30 hover:bg-slate-900/40">
+                            <div>
+                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-amber-400 transition-colors">Test di Stroop</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Inibizione della risposta automatica, flessibilità cognitiva e controllo dell'interferenza interferenziale.</p>
+                            </div>
+                            <button onclick="launchExerciseInline('app_di_stimolazione_cognitiva_test_di_stroop.html', 'Test di Stroop')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600 text-amber-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
+                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                            </button>
+                        </div>
+                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-amber-500/30 hover:bg-slate-900/40">
+                            <div>
+                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-amber-400 transition-colors">Il Semaforo delle Parole</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Paradigma Go/No-Go verbale. Controllo inibitorio dello stimolo semantico-cromatico incongruente.</p>
+                            </div>
+                            <button onclick="launchExerciseInline('il_semaforo_delle_parole.html', 'Il Semaforo delle Parole')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600 text-amber-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
+                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-6">
+                        <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-shuffle text-sm"></i>
+                        </div>
+                        <h2 class="text-xl font-bold tracking-tight text-slate-200">Flessibilità Cognitiva & Memoria di Lavoro</h2>
+                    </div>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-rose-500/30 hover:bg-slate-900/40">
+                            <div>
+                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-rose-400 transition-colors">TMT-B Percorso Alternato</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Digitalizzazione del Trail Making Test Parte B. Valutazione dello shifting sequenziale Numero-Lettera.</p>
+                            </div>
+                            <button onclick="launchExerciseInline('percorso_alternato_tmt_b.html', 'TMT-B Percorso Alternato')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
+                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                            </button>
+                        </div>
+                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-emerald-500/30 hover:bg-slate-900/40">
+                            <div>
+                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-emerald-400 transition-colors">N-Back Semantico</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Monitoraggio attivo e updating continuo della memoria di lavoro.</p>
+                            </div>
+                            <button onclick="launchExerciseInline('n_back_semantico.html', 'N-Back Semantico')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
+                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                            </button>
+                        </div>
+                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/40">
+                            <div>
+                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-indigo-400 transition-colors">Incastri Logici Pro</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Problem-solving strutturato basato su spostamenti vincolati (Torre di Hanoi).</p>
+                            </div>
+                            <button onclick="launchExerciseInline('incastri_logici.html', 'Incastri Logici Pro')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
+                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                            </button>
+                        </div>
+                        <div class="group rounded-xl border border-slate-900 bg-slate-900/20 p-5 flex flex-col justify-between transition-all duration-300 hover:border-indigo-500/30 hover:bg-slate-900/40">
+                            <div>
+                                <h3 class="font-bold text-slate-200 text-base mb-1 group-hover:text-indigo-400 transition-colors">Lo Specchio Rotante</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed mb-4">Esercizio di rotazione mentale e coordinazione visuo-spaziale su matrici geometriche riflesse.</p>
+                            </div>
+                            <button onclick="launchExerciseInline('specchio_rotante_stimolazione_cognitiva.html', 'Lo Specchio Rotante')" class="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white font-semibold text-xs tracking-wider uppercase transition-all">
+                                Avvia Modulo <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-20 pt-6 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-3 text-[11px] text-slate-600 tracking-wide uppercase">
+        <div>Sistema Centrale di Riabilitazione Neuropsicologica • Firebase CRM</div>
+        <div>
+            <button onclick="returnToHomeReal()" class="hover:text-indigo-400 font-semibold transition-colors">
+                <i class="fa-solid fa-house mr-1"></i> Ritorna alla Home principale
+            </button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAZIONE STRUTTURA FIREBASE REALTIME DATABASE
-        const firebaseConfig = {
-            databaseURL: "https://neurocenter-aostavalley-default-rtdb.europe-west1.firebasedatabase.app"
-        };
+        var selectedPatientId = null;
+        var activeSessionId = null;
+        var isFreeSession = false;
+        var globalPatientsData = {};
+        var database = null;
         
-        // Inizializzazione protetta del database
+        var currentActiveExerciseName = "";
+        var hasSavedViaPostMessage = false;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAv9a2xTG5xzRkJ_2_jVU2TgDCRYEfu970",
+            authDomain: "neurocenter-stimolazione.firebaseapp.com",
+            databaseURL: "https://neurocenter-stimolazione-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "neurocenter-stimolazione",
+            storageBucket: "neurocenter-stimolazione.firebasestorage.app",
+            messagingSenderId: "259470306894",
+            appId: "1:259470306894:web:1ba11544fff8e2e4089d1f",
+            measurementId: "G-R7W54NWQ4G"
+        };
+
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        database = firebase.database();
 
-        let currentActiveExerciseName = "";
-        let hasSavedViaPostMessage = false;
-
-        // CARICAMENTO INIZIALE E GESTIONE DELLO STATO DELLA SESSIONE
-        window.addEventListener('DOMContentLoaded', () => {
-            loadPatientsList();
-            
-            // Verifica se vi era una sessione attiva rimasta in memoria
-            const cachedPatientId = localStorage.getItem('neurocenter_active_patient_id');
-            const cachedPatientName = localStorage.getItem('neurocenter_active_patient_name');
-            
-            if (cachedPatientId) {
-                selectPatient(cachedPatientId, cachedPatientName || cachedPatientId);
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'NEUROCENTER_SAVE_DATA') {
+                console.log("Dati ricevuti dal modulo di stimolazione:", event.data);
+                
+                var pId = selectedPatientId || localStorage.getItem('neurocenter_active_patient_id');
+                var sId = activeSessionId || localStorage.getItem('neurocenter_active_session_id');
+                
+                if (pId && sId && pId !== 'FREE') {
+                    var rawName = event.data.exerciseName || currentActiveExerciseName || "Esercizio";
+                    var cleanDbKey = rawName.replace(/ /g, '_');
+                    
+                    database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
+                        summary: event.data.summary,
+                        data: event.data.data,
+                        timestamp: Date.now()
+                    }).then(function() {
+                        console.log("Statistiche caricate con successo nel database.");
+                        hasSavedViaPostMessage = true;
+                    }).catch(function(err) {
+                        console.error("Errore durante il caricamento dati:", err);
+                    });
+                }
             }
         });
 
-        // CARICAMENTO DINAMICO DEGLI UTENTI DA FIREBASE
-        function loadPatientsList() {
-            const container = document.getElementById('patients-list-container');
-            
-            database.ref('pazienti').on('value', (snapshot) => {
-                container.innerHTML = "";
-                const data = snapshot.val();
-                
-                if (!data) {
-                    container.innerHTML = `<div class="text-center p-6 text-xs text-slate-500 italic">Nessun paziente inserito nel database.</div>`;
-                    return;
-                }
-                
-                Object.keys(data).forEach(id => {
-                    const patient = data[id];
-                    const card = document.createElement('div');
-                    card.className = `p-3 bg-slate-900/60 border border-slate-800/80 rounded-2xl hover:border-slate-700 hover:bg-slate-900 transition cursor-pointer flex flex-col justify-between gap-1.5 group`;
-                    card.onclick = () => selectPatient(id, patient.nome || id);
-                    
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="text-xs font-bold text-slate-200 group-hover:text-indigo-400 transition">${patient.nome || id}</h4>
-                                <p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">${patient.note || 'Nessuna nota descrittiva.'}</p>
-                            </div>
-                            <span class="text-[9px] font-mono text-slate-500 bg-slate-950 px-1.5 py-0.5 border border-slate-800 rounded-md">ID: ${id.substring(0,6)}</span>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            });
-        }
-
-        // SALVATAGGIO DI UN NUOVO COMPALTO IN ANAGRAFICA
-        function savePatientToFirebase() {
-            const nameInput = document.getElementById('new-patient-name');
-            const notesInput = document.getElementById('new-patient-notes');
-            
-            const name = nameInput.value.trim();
-            const notes = notesInput.value.trim();
-            
-            if (!name) {
-                alert("È obbligatorio specificare un identificativo o nome.");
-                return;
-            }
-            
-            const newId = 'PAZ_' + Date.now();
-            database.ref('pazienti/' + newId).set({
-                nome: name,
-                note: notes,
-                dataRegistrazione: Date.now()
-            }).then(() => {
-                nameInput.value = "";
-                notesInput.value = "";
-                toggleAddPatientForm();
-            });
-        }
-
-        // SELEZIONE DEL PAZIENTE E ATTIVAZIONE AUTOMATICA DELL'HUB
-        function selectPatient(id, name) {
-            localStorage.setItem('neurocenter_active_patient_id', id);
-            localStorage.setItem('neurocenter_active_patient_name', name);
-            
-            // Genera e memorizza un ID univoco di sessione se non è una modalità libera
-            if (id !== 'FREE') {
-                const sessionId = 'SESS_' + Date.now();
-                localStorage.setItem('neurocenter_active_session_id', sessionId);
-                
-                // Crea il record della sessione nel database
-                database.ref('pazienti/' + id + '/sessioni/' + sessionId).set({
-                    timestampInizio: Date.now(),
-                    stato: "In Corso"
-                });
+        function handleLogin(event) {
+            event.preventDefault();
+            var userIn = document.getElementById('username').value;
+            var passIn = document.getElementById('password').value;
+            if (userIn === "Enrico" && passIn === "1234") {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-hub').classList.remove('hidden');
+                document.getElementById('patients-list').innerHTML = 'Connessione al Cloud...';
+                initDatabaseListeners();
             } else {
-                localStorage.removeItem('neurocenter_active_session_id');
+                document.getElementById('login-error').classList.remove('hidden');
+                document.getElementById('password').value = '';
             }
-            
-            // Aggiorna l'interfaccia utente sbloccando i moduli
-            document.getElementById('active-patient-display').innerText = name;
-            document.getElementById('btn-logout-patient').classList.remove('hidden');
-            
-            const hubSection = document.getElementById('exercises-hub-section');
-            hubSection.classList.remove('pointer-events-none', 'opacity-40');
         }
 
-        // LANCIO EFFETTIVO DELL'APPLICAZIONE IN COPERTURA SCREEN
-        function launchExercise(title, fileName) {
+        function initDatabaseListeners() {
+            database.ref('pazienti').on('value', function(snapshot) {
+                globalPatientsData = snapshot.val() || {};
+                renderPatientsList(globalPatientsData);
+                if (selectedPatientId) viewPatient(selectedPatientId);
+            }, function(error) {
+                console.error("Errore Firebase:", error);
+                document.getElementById('patients-list').innerHTML = 
+                    '<p class="text-rose-400 font-medium py-1">Errore Database.</p>';
+            });
+        }
+
+        function renderPatientsList(patients) {
+            var listContainer = document.getElementById('patients-list');
+            listContainer.innerHTML = '';
+            var keys = Object.keys(patients);
+            
+            if (keys.length === 0) { 
+                listContainer.innerHTML = '<p class="italic text-slate-600 py-2">Nessun paziente inserito.</p>'; 
+                return; 
+            }
+            
+            keys.forEach(function(key) {
+                var btn = document.createElement('button');
+                btn.type = "button";
+                btn.className = "w-full text-left px-3 py-2 rounded-lg border transition-all flex items-center justify-between " + 
+                                (selectedPatientId === key ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-200" : "bg-slate-950/40 border-slate-800/80 hover:bg-slate-900/50 text-slate-300");
+                btn.onclick = function() { viewPatient(key); };
+                btn.innerHTML = '<span><i class="fa-regular fa-user text-[10px] mr-1.5 opacity-60"></i> ' + patients[key].nome + '</span><i class="fa-solid fa-chevron-right text-[9px] opacity-40"></i>';
+                listContainer.appendChild(btn);
+            });
+        }
+
+        function viewPatient(id) {
+            isFreeSession = false;
+            selectedPatientId = id;
+            var p = globalPatientsData[id];
+            renderPatientsList(globalPatientsData);
+            
+            document.getElementById('patient-placeholder').classList.add('hidden');
+            document.getElementById('patient-details').classList.remove('hidden');
+            document.getElementById('notes-container').classList.remove('hidden');
+            document.getElementById('logs-container').classList.remove('hidden');
+            
+            document.getElementById('current-p-name').innerText = p.nome;
+            document.getElementById('current-p-notes').innerText = p.note;
+
+            var nascita = new Date(p.nascita);
+            var eta = new Date().getFullYear() - nascita.getFullYear();
+            document.getElementById('current-p-meta').innerText = "Nato il: " + nascita.toLocaleDateString('it-IT') + " (" + eta + " anni)";
+
+            loadPatientSessions(id);
+        }
+
+        function loadPatientSessions(patientId) {
+            var container = document.getElementById('sessions-log');
+            database.ref('pazienti/' + patientId + '/sessioni').on('value', function(snapshot) {
+                var data = snapshot.val();
+                container.innerHTML = '';
+                if (!data) { 
+                    container.innerHTML = '<p class="italic text-slate-600">Nessun allenamento salvato.</p>'; 
+                    return; 
+                }
+                Object.keys(data).reverse().forEach(function(sId) {
+                    var s = data[sId];
+                    var div = document.createElement('div');
+                    div.className = "bg-slate-950/40 border border-slate-800/80 rounded-lg p-2.5 mb-1.5";
+                    var exHtml = '';
+                    
+                    if (s.esercizi) {
+                        Object.keys(s.esercizi).forEach(function(ex) {
+                            exHtml += '<div class="text-[11px] bg-slate-900/50 border border-slate-800/50 px-2 py-1 rounded flex items-center justify-between mt-1 text-slate-300">' +
+                                '<span class="text-indigo-300"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> ' + ex.replace(/_/g, ' ') + '</span>' +
+                                '<span class="text-slate-400 text-[10px] font-mono">' + (s.esercizi[ex].summary || 'Eseguito') + '</span>' +
+                            '</div>';
+                        });
+                    } else { 
+                        exHtml = '<p class="text-[11px] text-slate-600 italic">Nessun esercizio completato.</p>'; 
+                    }
+                    div.innerHTML = '<div class="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-900 pb-1"><span><i class="fa-regular fa-calendar-check mr-1 text-indigo-400"></i> Sessione: ' + s.data + '</span></div>' + exHtml;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function savePatient() {
+            var nomeInput = document.getElementById('p-nome');
+            var nascitaInput = document.getElementById('p-nascita');
+            var noteInput = document.getElementById('p-note');
+
+            var nome = nomeInput.value.trim();
+            var nascita = nascitaInput.value;
+            var note = noteInput.value.trim();
+            
+            if (!nome || !nascita) { 
+                alert("Compilare Cognome, Nome e Data di Nascita."); 
+                return; 
+            }
+
+            var pacchettoDati = {
+                nome: nome,
+                nascita: nascita,
+                note: note || "Nessuna nota iniziale."
+            };
+
+            database.ref('pazienti').push(pacchettoDati)
+                .then(function() {
+                    nomeInput.value = '';
+                    nascitaInput.value = '';
+                    noteInput.value = '';
+                    toggleAddPatientForm();
+                })
+                .catch(function(err) {
+                    alert("Errore di scrittura: " + err.message);
+                });
+        }
+
+        function startSession() {
+            if (!selectedPatientId) return;
+            var dataCorrente = new Date().toLocaleString('it-IT');
+            var sessionRef = database.ref('pazienti/' + selectedPatientId + '/sessioni').push();
+            activeSessionId = sessionRef.key;
+
+            sessionRef.set({ data: dataCorrente, timestamp: Date.now() }).then(function() {
+                localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
+                localStorage.setItem('neurocenter_active_session_id', activeSessionId);
+                
+                document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
+                document.getElementById('exercise-overlay').classList.add('hidden');
+                document.getElementById('btn-session').classList.add('hidden');
+                document.getElementById('btn-stop-session').classList.remove('hidden');
+            });
+        }
+
+        function startFreeSession() {
+            isFreeSession = true;
+            selectedPatientId = "FREE";
+            activeSessionId = "FREE_SESSION_" + Date.now();
+            
+            localStorage.setItem('neurocenter_active_patient_id', selectedPatientId);
+            localStorage.setItem('neurocenter_active_session_id', activeSessionId);
+
+            document.getElementById('patient-placeholder').classList.add('hidden');
+            document.getElementById('patient-details').classList.remove('hidden');
+            document.getElementById('notes-container').classList.add('hidden');
+            document.getElementById('logs-container').classList.add('hidden');
+            
+            document.getElementById('current-p-name').innerText = "Sessione Estemporanea Libera";
+            document.getElementById('current-p-meta').innerText = "Nessun salvataggio dati abilitato sul cloud.";
+            
+            document.getElementById('exercises-container').classList.remove('opacity-30', 'pointer-events-none');
+            document.getElementById('exercise-overlay').classList.add('hidden');
+            document.getElementById('btn-session').classList.add('hidden');
+            document.getElementById('btn-stop-session').classList.remove('hidden');
+        }
+
+        function stopSession() {
+            activeSessionId = null;
+            selectedPatientId = null;
+            localStorage.removeItem('neurocenter_active_patient_id');
+            localStorage.removeItem('neurocenter_active_session_id');
+            
+            document.getElementById('exercises-container').classList.add('opacity-30', 'pointer-events-none');
+            document.getElementById('exercise-overlay').classList.remove('hidden');
+            document.getElementById('btn-session').classList.remove('hidden');
+            document.getElementById('btn-stop-session').classList.add('hidden');
+            document.getElementById('patient-placeholder').classList.remove('hidden');
+            document.getElementById('patient-details').classList.add('hidden');
+        }
+
+        function launchExerciseInline(url, title) {
+            if (!activeSessionId) { 
+                alert("Attiva prima una sessione (paziente o libera)."); 
+                return; 
+            }
+            
             currentActiveExerciseName = title;
             hasSavedViaPostMessage = false;
             
-            document.getElementById('current-exercise-title-bar').innerText = title;
-            document.getElementById('exercise-iframe').src = fileName;
+            document.getElementById('active-exercise-title').innerText = "Modulo Attivo: " + title;
+            document.getElementById('exercise-iframe').src = url;
             document.getElementById('exercise-frame-container').classList.remove('hidden');
         }
 
-        // ASCOLTATORE DEI MESSAGGI INTER-FRAME (POSTMESSAGE API)
-        window.addEventListener('message', function(event) {
-            // Struttura standard attesa dall'app interna: { score: X, errors: Y, accuracy: Z, fullReport: {} }
-            const pId = localStorage.getItem('neurocenter_active_patient_id');
-            const sId = localStorage.getItem('neurocenter_active_session_id');
+        function closeExerciseInline() {
+            var pId = localStorage.getItem('neurocenter_active_patient_id');
+            var sId = localStorage.getItem('neurocenter_active_session_id');
             
-            if (!pId || pId === 'FREE' || !sId) return;
-            
-            if (event.data && typeof event.data === 'object') {
-                const cleanDbKey = currentActiveExerciseName.replace(/ /g, '_');
-                
-                database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
-                    datiMetrica: event.data,
-                    timestamp: Date.now()
-                });
-                
-                hasSavedViaPostMessage = true;
-            }
-        });
-
-        // CHIUSURA STRUTTURATA DELL'ESERCIZIO CON MARCATURA DI SICUREZZA FALLBACK
-        function closeActiveExercise() {
-            const pId = localStorage.getItem('neurocenter_active_patient_id');
-            const sId = localStorage.getItem('neurocenter_active_session_id');
-            
-            // Fallback se l'esercizio non ha trasmesso autonomamente dati strutturati via postMessage
             if (pId && sId && pId !== 'FREE' && currentActiveExerciseName !== "" && !hasSavedViaPostMessage) {
-                const cleanDbKey = currentActiveExerciseName.replace(/ /g, '_');
-                const timeStr = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+                var cleanDbKey = currentActiveExerciseName.replace(/ /g, '_');
+                var timestampCorrente = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
                 
                 database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
-                    summary: "Eseguito alle " + timeStr + " (Chiusura manuale In-App)",
+                    summary: "Eseguito alle " + timestampCorrente + " (In-App)",
                     timestamp: Date.now()
                 });
             }
@@ -611,16 +539,15 @@
             document.getElementById('exercise-iframe').src = "about:blank";
         }
 
-        // CHIUSURA TOTALE DELLA SESSIONE CORRENTE (LOGOUT)
-        function returnToHomeReal() {
-            localStorage.removeItem('neurocenter_active_patient_id');
-            localStorage.removeItem('neurocenter_active_patient_name');
-            localStorage.removeItem('neurocenter_active_session_id');
-            window.location.reload();
+        function toggleAddPatientForm() {
+            var form = document.getElementById('add-patient-form');
+            form.classList.toggle('hidden');
         }
 
-        function toggleAddPatientForm() {
-            document.getElementById('add-patient-form').classList.toggle('hidden');
+        function returnToHomeReal() {
+            localStorage.removeItem('neurocenter_active_patient_id');
+            localStorage.removeItem('neurocenter_active_session_id');
+            window.location.reload();
         }
     </script>
 </body>
