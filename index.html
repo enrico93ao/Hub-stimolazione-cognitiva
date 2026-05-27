@@ -52,17 +52,17 @@
 
     <div id="status-bar" class="bg-amber-50 border-b border-amber-200 px-6 py-2 text-center text-xs text-amber-800 font-medium hidden">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <span id="active-patient-badge"><i class="fa-solid fa-user-check mr-1.5"></i> Profilo attivo</span>
+            <span id="active-patient-badge-top"><i class="fa-solid fa-user-check mr-1.5"></i> Profilo attivo</span>
             <button onclick="returnToHomeReal()" class="text-xs font-bold text-rose-600 hover:underline">
-                <i class="fa-solid fa-right-from-bracket"></i> Disconnetti Paziente
+                <i class="fa-solid fa-right-from-bracket"></i> Cambia / Disconnetti Paziente
             </button>
         </div>
     </div>
 
-    <section class="bg-white pt-12 pb-20 relative overflow-hidden">
+    <section class="bg-white pt-12 pb-4 relative overflow-hidden border-b border-stone-100">
         <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            <div class="lg:col-span-7 space-y-6">
+            <div class="lg:col-span-7 space-y-6 z-10">
                 <div class="space-y-2">
                     <h2 class="text-3xl md:text-5xl font-black text-neuro-blue tracking-tight leading-tight uppercase">
                         A volte è solo<br><span class="text-neuro-blue">una dimenticanza.</span>
@@ -96,15 +96,13 @@
                 </div>
             </div>
 
-            <div class="lg:col-span-5 relative flex justify-center">
-                <div class="w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden border-4 border-stone-100 bg-stone-100 shadow-xl relative">
-                    <img src="hero_elderly_image.jpg" alt="Sostegno Cognitivo - Neurocenter" class="w-full h-full object-cover">
-                </div>
+            <div class="lg:col-span-5 relative flex justify-center items-end self-end pt-8 lg:pt-0">
+                <img src="4193f491-3743-44ef-b6ad-7ceaad0826e8.png" alt="Sostegno Cognitivo - Neurocenter" class="w-full max-w-md object-contain relative z-10 max-h-[380px]">
                 
-                <div class="absolute bottom-4 right-0 md:-right-4 max-w-xs bg-neuro-blue text-white p-5 rounded-2xl shadow-2xl border border-white/10 space-y-2">
+                <div class="absolute top-4 right-0 max-w-[210px] bg-neuro-blue text-white p-4 rounded-2xl shadow-2xl border border-white/10 space-y-2 z-20">
                     <div class="flex items-center gap-2 text-neuro-gold">
-                        <i class="fa-solid fa-brain text-xl"></i>
-                        <h4 class="text-xs font-black uppercase tracking-wider">La Valutazione Neuropsicologica</h4>
+                        <i class="fa-solid fa-brain text-md"></i>
+                        <h4 class="text-[10px] font-black uppercase tracking-wider">La Valutazione Neuropsicologica</h4>
                     </div>
                     <p class="text-[11px] text-stone-300 leading-relaxed">
                         aiuta a capire, intervenire e mantenere la tua autonomia il più a lungo possibile.
@@ -119,8 +117,8 @@
         <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             <div class="bg-[#fcfaf7] p-8 rounded-[2rem] shadow-xl border border-stone-200 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                <div class="w-28 h-28 flex-shrink-0 bg-white rounded-2xl p-2 shadow-sm flex items-center justify-center border border-stone-100">
-                    <img src="patient_card.jpg" alt="Icona Area Paziente" class="w-full h-full object-contain">
+                <div class="w-28 h-28 flex-shrink-0 bg-white rounded-2xl p-2 shadow-sm flex items-center justify-center border border-stone-100 overflow-hidden">
+                    <img src="patient_card.jpg" alt="Icona Area Paziente" class="w-full h-full object-cover rounded-xl">
                 </div>
                 <div class="flex-1 flex flex-col justify-between h-full space-y-4 text-center sm:text-left">
                     <div>
@@ -130,15 +128,15 @@
                             Esercizi personalizzati e percorsi mirati per potenziare memoria, attenzione, linguaggio e funzioni esecutive in modo semplice e coinvolgente.
                         </p>
                     </div>
-                    <button onclick="startFreeSession()" class="sm:self-start px-8 py-3 bg-neuro-blue text-white hover:bg-slate-800 font-bold text-xs uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-3 shadow-md">
+                    <button onclick="startFreeSession()" class="sm:self-start px-8 py-3 bg-neuro-blue text-white hover:bg-slate-800 font-bold text-xs uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-3 shadow-md w-full sm:w-auto">
                         <i class="fa-solid fa-user text-sm"></i> Area Paziente <i class="fa-solid fa-arrow-right text-xs"></i>
                     </button>
                 </div>
             </div>
 
             <div class="bg-[#fcfaf7] p-8 rounded-[2rem] shadow-xl border border-stone-200 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                <div class="w-28 h-28 flex-shrink-0 bg-white rounded-2xl p-2 shadow-sm flex items-center justify-center border border-stone-100">
-                    <img src="specialist_card.jpg" alt="Icona Area Specialista" class="w-full h-full object-contain">
+                <div class="w-28 h-28 flex-shrink-0 bg-white rounded-2xl p-2 shadow-sm flex items-center justify-center border border-stone-100 overflow-hidden">
+                    <img src="specialist_card.jpg" alt="Icona Area Specialista" class="w-full h-full object-cover rounded-xl">
                 </div>
                 <div class="flex-1 flex flex-col justify-between h-full space-y-4 text-center sm:text-left">
                     <div>
@@ -148,7 +146,7 @@
                             Piattaforma dedicata per creare percorsi personalizzati, monitorare le sessioni, analizzare i risultati e supportare ogni paziente nel tempo.
                         </p>
                     </div>
-                    <button onclick="openSpecialistDashboard()" class="sm:self-start px-8 py-3 bg-[#b8860b] text-white hover:bg-amber-700 font-bold text-xs uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-3 shadow-md">
+                    <button onclick="openSpecialistDashboard()" class="sm:self-start px-8 py-3 bg-[#b8860b] text-white hover:bg-amber-700 font-bold text-xs uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-3 shadow-md w-full sm:w-auto">
                         <i class="fa-solid fa-lock text-sm"></i> Area Specialista <i class="fa-solid fa-arrow-right text-xs"></i>
                     </button>
                 </div>
@@ -176,31 +174,34 @@
 
     <section id="dashboard-clinical-area" class="max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 hidden my-8">
         
-        <div class="lg:col-span-4 bg-white border border-stone-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="lg:col-span-4 bg-white border border-stone-200 rounded-2xl p-5 shadow-sm space-y-4 h-fit">
             <div class="flex items-center justify-between border-b border-stone-100 pb-2">
                 <h3 class="text-xs font-black uppercase tracking-wider text-neuro-blue"><i class="fa-solid fa-users text-neuro-gold mr-1.5"></i>Pazienti in Cloud</h3>
                 <button onclick="loadPatientsList()" class="text-xs text-neuro-gold font-bold"><i class="fa-solid fa-rotate-right"></i></button>
             </div>
             
-            <div id="patients-list" class="grid grid-cols-1 gap-2 max-h-52 overflow-y-auto pr-1 custom-scroll">
-                <div class="text-slate-400 text-xs italic text-center p-4">Caricamento...</div>
+            <div id="patients-list" class="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-1 custom-scroll">
+                <div class="text-slate-400 text-xs italic text-center p-4">Caricamento in corso...</div>
             </div>
 
             <button onclick="toggleAddPatientForm()" class="w-full py-2 bg-stone-100 text-slate-700 hover:bg-stone-200 rounded-xl font-bold text-xs uppercase tracking-wider transition"><i class="fa-solid fa-user-plus mr-1"></i>Nuovo Paziente</button>
             
             <div id="add-patient-form" class="hidden pt-3 border-t border-stone-200 space-y-2">
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="new-p-name" placeholder="Nome" class="bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs">
-                    <input type="text" id="new-p-surname" placeholder="Cognome" class="bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs">
+                    <input type="text" id="new-p-name" placeholder="Nome" class="bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs w-full">
+                    <input type="text" id="new-p-surname" placeholder="Cognome" class="bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs w-full">
                 </div>
                 <input type="text" id="new-p-notes" placeholder="Note cliniche" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs">
-                <button onclick="saveNewPatient()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider">Salva Cloud</button>
+                <button onclick="saveNewPatient()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-emerald-700 transition">Salva Cloud</button>
             </div>
         </div>
 
         <div class="lg:col-span-8 bg-white border border-stone-200 rounded-2xl p-5 shadow-sm space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-2">
-                <h3 class="text-xs font-black uppercase tracking-wider text-neuro-blue"><i class="fa-solid fa-layer-group text-neuro-gold mr-1.5"></i>Moduli di Riabilitazione</h3>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-3">
+                <div>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-neuro-blue"><i class="fa-solid fa-layer-group text-neuro-gold mr-1.5"></i>Moduli di Riabilitazione</h3>
+                    <p id="active-patient-badge-main" class="text-[11px] text-slate-500 mt-0.5 font-medium"></p>
+                </div>
                 
                 <nav id="filter-menu" class="flex flex-wrap gap-1 text-[10px] font-bold uppercase">
                     <button onclick="filterExercises('all')" data-filter="all" class="px-2 py-1 bg-neuro-blue text-white rounded-md">Tutti (<span id="count-all">0</span>)</button>
@@ -212,7 +213,7 @@
                 </nav>
             </div>
 
-            <div id="exercise-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1 custom-scroll">
+            <div id="exercise-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1 custom-scroll">
                 </div>
         </div>
     </section>
@@ -344,9 +345,14 @@
             var activePatientName = localStorage.getItem('neurocenter_active_patient_name');
             if (activePatientId) {
                 document.getElementById('status-bar').classList.remove('hidden');
-                document.getElementById('active-patient-badge').innerHTML = `<i class="fa-solid fa-user-check text-emerald-600 mr-1.5"></i> Profilo clinico in uso: <strong class="text-slate-900">${activePatientName}</strong>`;
+                document.getElementById('dashboard-clinical-area').classList.remove('hidden');
+                
+                var labelText = `<i class="fa-solid fa-user-check text-emerald-600 mr-1.5"></i> Profilo attivo: <strong class="text-slate-900">${activePatientName}</strong>`;
+                document.getElementById('active-patient-badge-top').innerHTML = labelText;
+                document.getElementById('active-patient-badge-main').innerHTML = `Sessione attiva per: <strong>${activePatientName}</strong>`;
             } else {
                 document.getElementById('status-bar').classList.add('hidden');
+                document.getElementById('active-patient-badge-main').innerHTML = "";
             }
         }
 
@@ -355,7 +361,6 @@
             localStorage.setItem('neurocenter_active_patient_name', "Sessione Libera Paziente");
             localStorage.setItem('neurocenter_active_session_id', 'FREE');
             checkActiveSessionState();
-            document.getElementById('dashboard-clinical-area').classList.remove('hidden');
             document.getElementById('dashboard-clinical-area').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -367,9 +372,10 @@
                 container.innerHTML = '';
                 const data = snapshot.val();
                 if (!data) { container.innerHTML = '<div class="text-xs text-slate-400 text-center">Nessun paziente.</div>'; return; }
+                
                 Object.entries(data).forEach(([id, p]) => {
                     const div = document.createElement('div');
-                    div.className = "p-2 bg-stone-50 border border-stone-200 hover:border-neuro-gold text-xs rounded-xl cursor-pointer font-medium text-slate-700 transition flex justify-between items-center";
+                    div.className = "p-2.5 bg-stone-50 border border-stone-200 hover:border-neuro-gold text-xs rounded-xl cursor-pointer font-medium text-slate-700 transition flex justify-between items-center";
                     div.onclick = () => selectPatient(id, `${p.nome} ${p.cognome}`);
                     div.innerHTML = `<span>${p.nome} ${p.cognome}</span> <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>`;
                     container.appendChild(div);
@@ -394,10 +400,10 @@
             const filtered = filter === 'all' ? exercises : exercises.filter(e => e.category === filter);
             filtered.forEach(ex => {
                 const card = document.createElement('div');
-                card.className = "bg-stone-50 border border-stone-200 rounded-xl p-3 flex flex-col justify-between space-y-2 hover:border-neuro-blue transition";
+                card.className = "bg-stone-50 border border-stone-200 rounded-xl p-3.5 flex flex-col justify-between space-y-2 hover:border-neuro-blue transition";
                 card.innerHTML = `
                     <div>
-                        <div class="flex items-center justify-between text-slate-400"><i class="fa-solid ${ex.icon}"></i> <span class="text-[9px] uppercase font-bold bg-stone-200 text-slate-600 px-1 rounded">${ex.category}</span></div>
+                        <div class="flex items-center justify-between text-slate-400"><i class="fa-solid ${ex.icon}"></i> <span class="text-[9px] uppercase font-bold bg-stone-200 text-slate-600 px-1 rounded">${ex.category.replace('-', ' ')}</span></div>
                         <h4 class="text-xs font-bold text-slate-800 mt-1">${ex.title}</h4>
                         <p class="text-[10px] text-slate-500 leading-tight">${ex.description}</p>
                     </div>
@@ -410,7 +416,7 @@
         function filterExercises(category) {
             renderExercisesGrid(category);
             document.querySelectorAll('#filter-menu button').forEach(b => {
-                if(b.getAttribute('onclick').includes(category)) {
+                if(b.getAttribute('data-filter') === category) {
                     b.className = "px-2 py-1 bg-neuro-blue text-white rounded-md";
                 } else {
                     b.className = "px-2 py-1 bg-stone-100 text-slate-600 rounded-md";
@@ -451,6 +457,23 @@
         }
 
         function toggleAddPatientForm() { document.getElementById('add-patient-form').classList.toggle('hidden'); }
+        
+        async function saveNewPatient() {
+            const nome = document.getElementById('new-p-name').value.trim();
+            const cognome = document.getElementById('new-p-surname').value.trim();
+            const note = document.getElementById('new-p-notes').value.trim();
+            if(!nome || !cognome) { alert("Nome e cognome obbligatori."); return; }
+            try {
+                const newRef = database.ref('pazienti').push();
+                await newRef.set({ nome: nome, cognome: cognome, note: note, dataCreazione: Date.now() });
+                document.getElementById('new-p-name').value = '';
+                document.getElementById('new-p-surname').value = '';
+                document.getElementById('new-p-notes').value = '';
+                document.getElementById('add-patient-form').classList.add('hidden');
+                loadPatientsList();
+            } catch (error) { alert("Errore di scrittura: " + error.message); }
+        }
+
         function returnToHomeReal() { localStorage.clear(); window.location.reload(); }
 
         window.addEventListener('message', function(event) {
