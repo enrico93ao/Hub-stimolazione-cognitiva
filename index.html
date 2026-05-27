@@ -35,7 +35,12 @@
             </div>
 
             <div class="space-y-4 mb-6">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Pazienti Attivi</label>
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Pazienti Attivi</label>
+                    <button onclick="loadPatientsList()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
+                        <i class="fa-solid fa-rotate-right mr-1"></i>Aggiorna
+                    </button>
+                </div>
                 <div id="patients-list" class="grid grid-cols-1 gap-3 max-h-52 overflow-y-auto pr-1 custom-scroll">
                     <div class="text-slate-500 text-sm italic p-4 text-center">Caricamento profili in corso...</div>
                 </div>
@@ -417,43 +422,73 @@
 
         // CARICAMENTO LISTA PAZIENTI DA FIREBASE
         function loadPatientsList() {
-            if (!database) {
-                const container = document.getElementById('patients-list');
-                container.innerHTML = '<div class="text-rose-500 text-sm italic p-4 text-center">Firebase non inizializzato. Impossibile caricare i pazienti.</div>';
+            const container = document.getElementById('patients-list');
+
+            if (!container) {
+                console.error("Elemento #patients-list non trovato.");
                 return;
             }
-            database.ref('pazienti').on('value', (snapshot) => {
-                const container = document.getElementById('patients-list');
-                container.innerHTML = '';
-                const data = snapshot.val();
-                if (!data) {
-                    container.innerHTML = '<div class="text-slate-500 text-sm italic p-4 text-center">Nessun paziente registrato nel database cloud.</div>';
-                    return;
-                }
-                for (let id in data) {
-                    const p = data[id];
-                    const div = document.createElement('div');
-                    div.className = "flex items-center justify-between p-3.5 bg-slate-950/60 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/40 rounded-xl cursor-pointer transition group";
-                    div.onclick = () => selectPatient(id, `${p.nome} ${p.cognome}`);
-                    div.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="h-8 w-8 bg-slate-800 group-hover:bg-indigo-600 rounded-lg flex items-center justify-center text-xs font-bold text-slate-300 group-hover:text-white transition">
-                                ${p.nome.charAt(0)}${p.cognome.charAt(0)}
+
+            if (!firebase.apps.length || !database) {
+                container.innerHTML = '<div class="text-rose-500 text-sm italic p-4 text-center">Firebase non inizializzato. Impossibile caricare i pazienti.</div>';
+                console.error("Firebase/database non inizializzato.");
+                return;
+            }
+
+            container.innerHTML = '<div class="text-slate-500 text-sm italic p-4 text-center"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Caricamento profili in corso...</div>';
+
+            database.ref('pazienti').once('value')
+                .then((snapshot) => {
+                    container.innerHTML = '';
+                    const data = snapshot.val();
+
+                    console.log("Pazienti letti da Firebase:", data);
+
+                    if (!data) {
+                        container.innerHTML = '<div class="text-slate-500 text-sm italic p-4 text-center">Nessun paziente registrato nel database cloud.</div>';
+                        return;
+                    }
+
+                    const pazienti = Object.entries(data).sort((a, b) => {
+                        const pa = a[1] || {};
+                        const pb = b[1] || {};
+                        return (pb.dataCreazione || 0) - (pa.dataCreazione || 0);
+                    });
+
+                    pazienti.forEach(([id, p]) => {
+                        const nome = p.nome || '';
+                        const cognome = p.cognome || '';
+                        const note = p.note || 'Nessuna nota aggiuntiva';
+
+                        const div = document.createElement('div');
+                        div.className = "flex items-center justify-between p-3.5 bg-slate-950/60 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/40 rounded-xl cursor-pointer transition group";
+                        div.onclick = () => selectPatient(id, `${nome} ${cognome}`.trim());
+
+                        div.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="h-8 w-8 bg-slate-800 group-hover:bg-indigo-600 rounded-lg flex items-center justify-center text-xs font-bold text-slate-300 group-hover:text-white transition">
+                                    ${(nome.charAt(0) || '?').toUpperCase()}${(cognome.charAt(0) || '').toUpperCase()}
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-200 group-hover:text-white transition">${nome} ${cognome}</h4>
+                                    <p class="text-xs text-slate-500">${note}</p>
+                                </div>
                             </div>
-                            <div>
-                                <h4 class="text-sm font-bold text-slate-200 group-hover:text-white transition">${p.nome} ${p.cognome}</h4>
-                                <p class="text-xs text-slate-500">${p.note || 'Nessuna nota aggiuntiva'}</p>
-                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-indigo-400 text-xs transition"></i>
+                        `;
+
+                        container.appendChild(div);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Errore lettura pazienti Firebase:", error);
+                    container.innerHTML = `
+                        <div class="text-rose-500 text-sm italic p-4 text-center font-semibold">
+                            Errore di lettura: ${error.message}<br>
+                            <span class="text-xs font-normal">Controlla le Rules del Realtime Database: ".read": true.</span>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-indigo-400 text-xs transition"></i>
                     `;
-                    container.appendChild(div);
-                }
-            }, (error) => {
-                console.error("Errore caricamento pazienti Firebase:", error);
-                const container = document.getElementById('patients-list');
-                container.innerHTML = `<div class="text-rose-500 text-sm italic p-4 text-center font-semibold">Errore di caricamento: ${error.message}<br><span class="text-xs font-normal">Verifica la configurazione e le regole di lettura del database.</span></div>`;
-            });
+                });
         }
 
         // AGGIUNTA PAZIENTE SU FIREBASE
@@ -493,6 +528,7 @@
                 document.getElementById('add-patient-form').classList.add('hidden');
 
                 alert("Paziente salvato correttamente nel database Firebase.");
+                loadPatientsList();
             } catch (error) {
                 console.error("Errore salvataggio Firebase:", error);
                 alert(
