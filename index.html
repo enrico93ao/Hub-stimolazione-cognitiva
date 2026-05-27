@@ -35,10 +35,7 @@
             </div>
 
             <div class="space-y-4 mb-6">
-                <div class="flex items-center justify-between">
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Pazienti Attivi</label>
-                    <span id="connection-status-badge" class="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-slate-800 text-slate-500">Connessione...</span>
-                </div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Pazienti Attivi</label>
                 <div id="patients-list" class="grid grid-cols-1 gap-3 max-h-52 overflow-y-auto pr-1 custom-scroll">
                     <div class="text-slate-500 text-sm italic p-4 text-center">Caricamento profili in corso...</div>
                 </div>
@@ -61,7 +58,7 @@
                 </div>
                 <input type="text" id="new-p-notes" placeholder="Note cliniche o diagnostiche (opzionale)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
                 <button onclick="saveNewPatient()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-wider transition text-white">
-                    Conferma e Salva
+                    Conferma e Salva in Cloud
                 </button>
             </div>
         </div>
@@ -137,205 +134,26 @@
     </div>
 
     <script>
-        // SERVIZIO DATI CON FALLBACK LOCALE E MONITORAGGIO CONNESSIONE
-        const dbService = {
-            isFirebaseActive: false,
-            hasLoadedInitialData: false,
-            localData: {
-                pazienti: JSON.parse(localStorage.getItem('neurocenter_local_pazienti')) || {}
-            },
-            onDataChangeCallback: null,
-
-            init() {
-                this.updateUIStatus("Verifica...");
-                try {
-                    if (typeof firebase !== 'undefined') {
-                        // CONFIGURAZIONE FIREBASE
-                        const firebaseConfig = {
-                            apiKey: "AIzaSyDummyKeyForInitialization_PleaseReplace",
-                            authDomain: "neurocenter-a3093.firebaseapp.com",
-                            databaseURL: "https://neurocenter-a3093-default-rtdb.europe-west1.firebasedatabase.app",
-                            projectId: "neurocenter-a3093",
-                            storageBucket: "neurocenter-a3093.appspot.com",
-                            messagingSenderId: "123456789012",
-                            appId: "1:123456789012:web:abc123def456ghi789jkl"
-                        };
-                        firebase.initializeApp(firebaseConfig);
-                        this.db = firebase.database();
-                        
-                        // Ascolta lo stato della connessione Firebase
-                        this.db.ref(".info/connected").on("value", (snap) => {
-                            if (snap.val() === true) {
-                                console.log("Firebase: Connesso al server.");
-                                this.isFirebaseActive = true;
-                                this.updateUIStatus("Cloud Online", "bg-emerald-500/20 text-emerald-400 border border-emerald-500/10");
-                                this.startCloudSync();
-                            } else {
-                                console.warn("Firebase: Connessione in corso o disconnesso...");
-                                // Se non si è mai collegato prima, resta in locale
-                                if (!this.isFirebaseActive) {
-                                    this.updateUIStatus("Offline (Locale)", "bg-amber-500/20 text-amber-400 border border-amber-500/10");
-                                }
-                            }
-                        });
-
-                        // Timeout di sicurezza caricamento iniziale (3 secondi)
-                        // Se Firebase non risponde entro 3 secondi, mostriamo subito i dati locali
-                        setTimeout(() => {
-                            if (!this.hasLoadedInitialData) {
-                                console.warn("Firebase: Timeout caricamento iniziale. Fallback locale.");
-                                this.triggerLocalFallback();
-                            }
-                        }, 3000);
-
-                    } else {
-                        console.warn("Librerie Firebase non caricate. Uso di localStorage.");
-                        this.triggerLocalFallback();
-                    }
-                } catch (e) {
-                    console.error("Errore inizializzazione Firebase:", e);
-                    this.triggerLocalFallback();
-                }
-            },
-
-            updateUIStatus(text, classes = "bg-slate-800 text-slate-400") {
-                const badge = document.getElementById('connection-status-badge');
-                if (badge) {
-                    badge.innerText = text;
-                    badge.className = "text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider " + classes;
-                }
-            },
-
-            // Forza caricamento dati locali
-            triggerLocalFallback() {
-                this.hasLoadedInitialData = true;
-                this.updateUIStatus("Offline (Locale)", "bg-amber-500/20 text-amber-400 border border-amber-500/10");
-                if (this.onDataChangeCallback) {
-                    this.onDataChangeCallback(this.localData.pazienti);
-                }
-            },
-
-            // Sincronizzazione Cloud
-            startCloudSync() {
-                this.db.ref('pazienti').on('value', (snapshot) => {
-                    this.hasLoadedInitialData = true;
-                    const val = snapshot.val() || {};
-                    // Unisci pazienti locali e remoti
-                    const combined = { ...this.localData.pazienti, ...val };
-                    if (this.onDataChangeCallback) {
-                        this.onDataChangeCallback(combined);
-                    }
-                }, (error) => {
-                    console.error("Firebase: Errore lettura dati:", error);
-                    this.triggerLocalFallback();
-                });
-            },
-
-            // Callback cambiamenti
-            onPatientsChange(callback) {
-                this.onDataChangeCallback = callback;
-                // Mostra subito i dati locali per non far attendere il caricamento
-                callback(this.localData.pazienti);
-            },
-
-            // Salva paziente (con timeout)
-            savePatient(nome, cognome, note) {
-                const patientData = {
-                    nome,
-                    cognome,
-                    note,
-                    dataCreazione: Date.now(),
-                    sessioni: {}
-                };
-
-                if (this.isFirebaseActive) {
-                    return new Promise((resolve, reject) => {
-                        const timeout = setTimeout(() => {
-                            reject(new Error("Il server database non ha risposto entro i limiti di tempo."));
-                        }, 4000);
-
-                        const newRef = this.db.ref('pazienti').push();
-                        newRef.set(patientData).then(() => {
-                            clearTimeout(timeout);
-                            resolve(newRef.key);
-                        }).catch((err) => {
-                            clearTimeout(timeout);
-                            reject(err);
-                        });
-                    });
-                } else {
-                    // Salva in localStorage
-                    const localId = 'LOCAL_' + Date.now();
-                    this.localData.pazienti[localId] = patientData;
-                    localStorage.setItem('neurocenter_local_pazienti', JSON.stringify(this.localData.pazienti));
-                    return Promise.resolve(localId);
-                }
-            },
-
-            // Inizializza sessione clinica (con timeout)
-            createSession(patientId, sessionId, sessionData) {
-                if (this.isFirebaseActive && !patientId.startsWith('LOCAL_')) {
-                    return new Promise((resolve, reject) => {
-                        const timeout = setTimeout(() => {
-                            reject(new Error("Timeout inizializzazione sessione."));
-                        }, 4000);
-
-                        this.db.ref('pazienti/' + patientId + '/sessioni/' + sessionId).set(sessionData)
-                        .then(() => {
-                            clearTimeout(timeout);
-                            resolve();
-                        }).catch((err) => {
-                            clearTimeout(timeout);
-                            reject(err);
-                        });
-                    });
-                } else {
-                    if (this.localData.pazienti[patientId]) {
-                        if (!this.localData.pazienti[patientId].sessioni) {
-                            this.localData.pazienti[patientId].sessioni = {};
-                        }
-                        this.localData.pazienti[patientId].sessioni[sessionId] = {
-                            ...sessionData,
-                            esercizi: {}
-                        };
-                        localStorage.setItem('neurocenter_local_pazienti', JSON.stringify(this.localData.pazienti));
-                    }
-                    return Promise.resolve();
-                }
-            },
-
-            // Salva dati esercizio (con timeout)
-            saveExerciseResult(patientId, sessionId, exerciseKey, exerciseData) {
-                if (this.isFirebaseActive && !patientId.startsWith('LOCAL_')) {
-                    return new Promise((resolve, reject) => {
-                        const timeout = setTimeout(() => {
-                            reject(new Error("Timeout salvataggio esercizio."));
-                        }, 4000);
-
-                        this.db.ref('pazienti/' + patientId + '/sessioni/' + sessionId + '/esercizi/' + exerciseKey).set(exerciseData)
-                        .then(() => {
-                            clearTimeout(timeout);
-                            resolve();
-                        }).catch((err) => {
-                            clearTimeout(timeout);
-                            reject(err);
-                        });
-                    });
-                } else {
-                    if (this.localData.pazienti[patientId] && 
-                        this.localData.pazienti[patientId].sessioni && 
-                        this.localData.pazienti[patientId].sessioni[sessionId]) {
-                        
-                        if (!this.localData.pazienti[patientId].sessioni[sessionId].esercizi) {
-                            this.localData.pazienti[patientId].sessioni[sessionId].esercizi = {};
-                        }
-                        this.localData.pazienti[patientId].sessioni[sessionId].esercizi[exerciseKey] = exerciseData;
-                        localStorage.setItem('neurocenter_local_pazienti', JSON.stringify(this.localData.pazienti));
-                    }
-                    return Promise.resolve();
-                }
-            }
+        // CONFIGURAZIONE FIREBASE
+        // IMPORTANTE: Sostituisci questi valori segnaposto con le reali credenziali web del tuo progetto Firebase.
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKeyForInitialization_PleaseReplace",
+            authDomain: "neurocenter-a3093.firebaseapp.com",
+            databaseURL: "https://neurocenter-a3093-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "neurocenter-a3093",
+            storageBucket: "neurocenter-a3093.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abc123def456ghi789jkl"
         };
+        
+        let database;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+        } catch (error) {
+            console.error("Errore inizializzazione Firebase:", error);
+            alert("Errore nell'inizializzazione dell'app Firebase. Verifica la configurazione 'firebaseConfig' in index.html.");
+        }
 
         // ARRAY COMPLETO DEGLI ESERCIZI (Vecchi + 10 Nuovi Moduli)
         const exercises = [
@@ -545,7 +363,6 @@
 
         // INIZIALIZZAZIONE APPLICAZIONE
         window.addEventListener('DOMContentLoaded', () => {
-            dbService.init(); // Inizializza dbService
             loadPatientsList();
             renderExercisesGrid('all');
             calculateCounters();
@@ -559,18 +376,15 @@
 
                 if (event.data && event.data.type === 'NEURO_SESSION_DATA') {
                     var cleanKey = currentActiveExerciseName.replace(/ /g, '_');
-                    var exerciseData = {
+                    database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanKey).set({
                         summary: event.data.summary || "Completato",
                         score: event.data.score || null,
                         accuracy: event.data.accuracy || null,
                         timestamp: Date.now()
-                    };
-                    
-                    dbService.saveExerciseResult(pId, sId, cleanKey, exerciseData)
-                    .then(() => {
+                    }).then(() => {
                         hasSavedViaPostMessage = true;
                     }).catch((error) => {
-                        console.error("Errore nel salvataggio via postMessage:", error);
+                        console.error("Errore salvataggio via postMessage:", error);
                     });
                 }
             });
@@ -598,22 +412,23 @@
             }
         }
 
-        // CARICAMENTO LISTA PAZIENTI
+        // CARICAMENTO LISTA PAZIENTI DA FIREBASE
         function loadPatientsList() {
-            const container = document.getElementById('patients-list');
-            
-            dbService.onPatientsChange((data) => {
+            if (!database) {
+                const container = document.getElementById('patients-list');
+                container.innerHTML = '<div class="text-rose-500 text-sm italic p-4 text-center">Firebase non inizializzato. Impossibile caricare i pazienti.</div>';
+                return;
+            }
+            database.ref('pazienti').on('value', (snapshot) => {
+                const container = document.getElementById('patients-list');
                 container.innerHTML = '';
-                
-                // Se non ci sono pazienti in assoluto
-                if (!data || Object.keys(data).length === 0) {
-                    container.innerHTML = '<div class="text-slate-500 text-sm italic p-4 text-center">Nessun paziente registrato (Cloud o Locale).</div>';
+                const data = snapshot.val();
+                if (!data) {
+                    container.innerHTML = '<div class="text-slate-500 text-sm italic p-4 text-center">Nessun paziente registrato nel database cloud.</div>';
                     return;
                 }
-                
                 for (let id in data) {
                     const p = data[id];
-                    const isLocal = id.startsWith('LOCAL_');
                     const div = document.createElement('div');
                     div.className = "flex items-center justify-between p-3.5 bg-slate-950/60 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/40 rounded-xl cursor-pointer transition group";
                     div.onclick = () => selectPatient(id, `${p.nome} ${p.cognome}`);
@@ -623,10 +438,7 @@
                                 ${p.nome.charAt(0)}${p.cognome.charAt(0)}
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-200 group-hover:text-white transition">
-                                    ${p.nome} ${p.cognome}
-                                    ${isLocal ? '<span class="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded ml-2 font-normal border border-amber-500/10">Locale</span>' : ''}
-                                </h4>
+                                <h4 class="text-sm font-bold text-slate-200 group-hover:text-white transition">${p.nome} ${p.cognome}</h4>
                                 <p class="text-xs text-slate-500">${p.note || 'Nessuna nota aggiuntiva'}</p>
                             </div>
                         </div>
@@ -634,52 +446,45 @@
                     `;
                     container.appendChild(div);
                 }
+            }, (error) => {
+                console.error("Errore caricamento pazienti Firebase:", error);
+                const container = document.getElementById('patients-list');
+                container.innerHTML = `<div class="text-rose-500 text-sm italic p-4 text-center font-semibold">Errore di caricamento: ${error.message}<br><span class="text-xs font-normal">Verifica la configurazione e le regole di lettura del database.</span></div>`;
             });
         }
 
-        // AGGIUNTA PAZIENTE
+        // AGGIUNTA PAZIENTE SU FIREBASE
         function saveNewPatient() {
             const nome = document.getElementById('new-p-name').value.trim();
             const cognome = document.getElementById('new-p-surname').value.trim();
             const note = document.getElementById('new-p-notes').value.trim();
             if(!nome || !cognome) { alert("Nome e cognome obbligatori."); return; }
 
-            dbService.savePatient(nome, cognome, note)
-            .then((res) => {
+            if (!database) {
+                alert("Errore: Il database Firebase non è inizializzato. Controlla il codice sorgente.");
+                return;
+            }
+
+            // Salvataggio diretto ed esclusivo su Firebase
+            const newRef = database.ref('pazienti').push();
+            newRef.set({ 
+                nome, 
+                cognome, 
+                note, 
+                dataCreazione: Date.now() 
+            })
+            .then(() => {
                 document.getElementById('new-p-name').value = '';
                 document.getElementById('new-p-surname').value = '';
                 document.getElementById('new-p-notes').value = '';
                 document.getElementById('add-patient-form').classList.add('hidden');
-                
-                // Se Firebase non era attivo, aggiorniamo manualmente la lista
-                if (!dbService.isFirebaseActive) {
-                    loadPatientsList();
-                }
-                
-                alert("Paziente registrato con successo!");
+                alert("Paziente salvato con successo nel database Firebase Cloud!");
             })
             .catch((error) => {
-                console.error("Errore salvataggio:", error);
-                // Tentativo fallback locale in caso di errore di scrittura o timeout su Firebase
-                alert("Salvataggio Cloud non riuscito: " + error.message + "\n\nIl paziente verrà salvato localmente nel browser.");
-                
-                // Forza salvataggio locale
-                const localId = 'LOCAL_' + Date.now();
-                dbService.localData.pazienti[localId] = {
-                    nome,
-                    cognome,
-                    note,
-                    dataCreazione: Date.now(),
-                    sessioni: {}
-                };
-                localStorage.setItem('neurocenter_local_pazienti', JSON.stringify(dbService.localData.pazienti));
-                
-                document.getElementById('new-p-name').value = '';
-                document.getElementById('new-p-surname').value = '';
-                document.getElementById('new-p-notes').value = '';
-                document.getElementById('add-patient-form').classList.add('hidden');
-                
-                loadPatientsList();
+                console.error("Errore salvataggio Firebase:", error);
+                alert("ERRORE DI SCRITTURA SU FIREBASE:\n" + error.message + 
+                      "\n\nVerifica:\n1. Di aver inserito le credenziali reali in 'firebaseConfig' (apiKey, appId, ecc.)." + 
+                      "\n2. Che le regole del database (Rules) nella console Firebase consentano l'accesso in scrittura pubblica (es. '.write': true).");
             });
         }
 
@@ -690,21 +495,15 @@
             var sessionRandomId = 'SESS_' + Date.now();
             localStorage.setItem('neurocenter_active_session_id', sessionRandomId);
             
-            var sessionData = {
+            // Inizializza il record sessione su Firebase
+            database.ref('pazienti/' + id + '/sessioni/' + sessionRandomId).set({
                 timestampInizio: Date.now(),
                 dataEstesa: new Date().toLocaleDateString('it-IT')
-            };
-
-            dbService.createSession(id, sessionRandomId, sessionData)
-            .then(() => {
+            }).then(() => {
                 checkActiveSessionState();
-            })
-            .catch((error) => {
-                console.error("Errore creazione sessione su Firebase:", error);
-                // Fallback locale immediato
-                dbService.createSession(id, sessionRandomId, sessionData).then(() => {
-                    checkActiveSessionState();
-                });
+            }).catch((error) => {
+                console.error("Errore creazione sessione Firebase:", error);
+                alert("Errore nell'avvio della sessione sul database: " + error.message);
             });
         }
 
@@ -782,13 +581,10 @@
                 var cleanDbKey = currentActiveExerciseName.replace(/ /g, '_');
                 var timestampCorrente = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
                 
-                var fallbackData = {
+                database.ref('pazienti/' + pId + '/sessioni/' + sId + '/esercizi/' + cleanDbKey).set({
                     summary: "Eseguito alle " + timestampCorrente + " (In-App)",
                     timestamp: Date.now()
-                };
-
-                dbService.saveExerciseResult(pId, sId, cleanDbKey, fallbackData)
-                .catch((error) => {
+                }).catch((error) => {
                     console.error("Errore fallback salvataggio esercizio:", error);
                 });
             }
